@@ -121,11 +121,11 @@ So what is shared with the application by default then?
 
 ### Environment Variables
 
-- `DISPLAY`
-- `HOME`
-- `PATH`
-- `TERM`
-- `USER`
+- `${DISPLAY}`
+- `${HOME}`
+- `${PATH}`
+- `${TERM}`
+- `${USER}`
 
 
 **sandwine** features include:
