@@ -135,11 +135,15 @@ So what is shared with the application by default then?
 - Support for PulseAudio
 
 
-# Thread Model and Known Limitations
+# Threat Model and Known Limitations
 
-- If your life depends on the sandbox, please use a proper virtual machine rather than sandwine.
-- sandwine relies on bubblewrap for its security, so it can only
-  be as security as bubblewrap.
+- If your life depends on the sandbox, please consider using
+  a virtual machine rather than sandwine, e.g. because your username
+  is exposed to the running application and depending on your threat model,
+  that may be too much already.
+  Also sandwine has not seen any known external security audits, yet.
+- sandwine relies on [bubblewrap](https://github.com/containers/bubblewrap)
+  for its security, so it can only be as secure as bubblewrap.
 - sandwine does not keep the application from using loads of RAM, CPU time and/or disk space.
   If your concerns include **denial of service**, you need protection beyond sandwine.
 - sandwine relies on sane file permissions in the places that are shared read-only.
@@ -148,9 +152,9 @@ So what is shared with the application by default then?
 - If the Windows application to be run expects a GNU/Linux environment and includes
   **Linux Kernel exploit** code, then that exploit is not likely to be stopped by sandwine.
 - If you manually allow the sandboxed application to communicate with an unsandboxed application
-  and the latter executes commands for the former, then the sandbox cannot prevent privilage
-  escalation.  Think of a model like the Docker daemon where whoeever can talk to the docker
-  damon can become root. If you use build that, sandwine will have a problem.
+  and the latter executes commands for the former, then the sandbox cannot prevent privilege
+  escalation.  Think of a model like the Docker daemon where whoever can talk to the Docker
+  daemon can become root. If you use sandwine with something like that, sandwine will have a problem.
 - Start-up time below 200ms is not a goal.
 
 
