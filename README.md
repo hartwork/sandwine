@@ -100,10 +100,11 @@ So what is shared with the application by default then?
 ## What is Exposed by Default?
 
 
-### Paths
+### Files
 
 | Path | Content |
 | ---- | ------- |
+| `/` | new tmpfs |
 | `/bin` | read-only bind mount |
 | `/dev` | new devtmpfs |
 | `/dev/dri` | read-write with device access |
