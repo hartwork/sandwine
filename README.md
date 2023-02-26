@@ -108,8 +108,8 @@ So what is shared with the application by default then?
 | `/dev` | new devtmpfs |
 | `/dev/dri` | read-write with device access |
 | `/etc` | read-only bind mount |
-| `$HOME` | new tmpfs |
-| `$HOME/.wine` | new tmpfs |
+| `${HOME}` | new tmpfs |
+| `${HOME}/.wine` | new tmpfs |
 | `/lib` | read-only bind mount |
 | `/lib32` | read-only bind mount |
 | `/lib64` | read-only bind mount |
