@@ -37,7 +37,7 @@ for NSIS.)
 # sandwine --pulseaudio --x11 --dotwine winamp/:rw --configure -- winamp
 ```
 
-Argument `--configure` will bring up `wincfg` prior to Winamp so that you have a chance at
+Argument `--configure` will bring up `winecfg` prior to Winamp so that you have a chance at
 unchecking these two boxes:
 
 - `Graphics`:
