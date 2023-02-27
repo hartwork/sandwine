@@ -428,7 +428,7 @@ def create_bwrap_argv(config):
         for mount_task in reversed(sorted_mount_tasks):
             if single_trailing_sep(candidate_path).startswith(single_trailing_sep(
                     mount_task.target)):
-                if mount_task.mode in (MountMode.BIND_RO, MountMode.BIND_RW):
+                if mount_task.mode in (MountMode.BIND_RO, MountMode.BIND_RW, MountMode.BIND_DEV):
                     available_paths.append(candidate_path)
                     break
         else:
