@@ -124,7 +124,7 @@ So what is shared with the application by default then?
 
 - `${DISPLAY}`
 - `${HOME}`
-- `${PATH}`
+- `${PATH}` (with known-unavailable entries removed)
 - `${TERM}`
 - `${USER}`
 
