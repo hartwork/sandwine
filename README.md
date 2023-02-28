@@ -34,7 +34,7 @@ for NSIS.)
 ### Run installed Winamp: with sound, with nested X11, no networking, no `~/*` file access
 
 ```console
-# sandwine --pulseaudio --x11 --dotwine winamp/:rw --configure -- winamp
+# sandwine --pulseaudio --x11 --dotwine winamp/:rw --pass ~/Music/:ro --configure -- winamp
 ```
 
 Argument `--configure` will bring up `winecfg` prior to Winamp so that you have a chance at
