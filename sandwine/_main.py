@@ -50,6 +50,7 @@ class X11Mode(Enum):
     NXAGENT = 'nxagent'
     XEPHYR = 'xephyr'
     XNEST = 'xnest'
+    XVFB = 'xvfb'
     NONE = 'none'
 
     @staticmethod
@@ -102,7 +103,8 @@ def parse_command_line(args):
                           dest='x11',
                           action='store_const',
                           const=X11Mode.AUTO,
-                          help='enable nested X11 using Xephry or Xnest (default: X11 disabled)')
+                          help='enable nested X11 using X2Go nxagent or Xephry or Xnest or Xvfb'
+                          ' (default: X11 disabled)')
     x11_args.add_argument('--nxagent',
                           dest='x11',
                           action='store_const',
@@ -118,6 +120,11 @@ def parse_command_line(args):
                           action='store_const',
                           const=X11Mode.XNEST,
                           help='enable nested X11 using Xnest (default: X11 disabled)')
+    x11_args.add_argument('--xvfb',
+                          dest='x11',
+                          action='store_const',
+                          const=X11Mode.XVFB,
+                          help='enable nested X11 using Xvfb (default: X11 disabled)')
     x11_args.add_argument('--host-x11-danger-danger',
                           dest='x11',
                           action='store_const',
@@ -192,16 +199,19 @@ class X11Context:
 
     @staticmethod
     def detect_nested():
-        for command, mode in [
+        tests = [
             ['nxagent', X11Mode.NXAGENT],
             ['Xephyr', X11Mode.XEPHYR],
             ['Xnest', X11Mode.XNEST],
-        ]:
+            ['Xvfb', X11Mode.XVFB],
+        ]
+        for command, mode in tests:
             if shutil.which(command) is not None:
                 _logger.info(f'Using {command} for nested X11.')
                 return mode
 
-        _logger.error('Neither Xephyr nor Xnest is available, please install, aborting.')
+        commands = [command for command, _ in tests]
+        _logger.error(f'Neither {" nor ".join(commands)} is available, please install, aborting.')
         sys.exit(127)
 
     def __enter__(self):
@@ -215,6 +225,8 @@ class X11Context:
                 argv = ['Xnest', '-geometry', self._geometry]
             elif X11Mode(self._config.x11) == X11Mode.NXAGENT:
                 argv = ['nxagent', '-nolisten', 'tcp', '-ac', '-noshmem', '-R']
+            elif X11Mode(self._config.x11) == X11Mode.XVFB:
+                argv = ['Xvfb', '-screen', '0', f'{self._geometry}x24', '-extension', 'MIT-SHM']
             else:
                 assert False, f'X11 mode {self._config.x11} not supported'
 
