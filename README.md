@@ -18,7 +18,7 @@ is licensed under the "GPL v3 or later" license.
 # Usage Examples
 
 
-### Install Winamp 5.66: no networking, no X11, no sounds, no access to `~/*` files
+### Install Winamp 5.66: no networking, no X11, no sound, no access to `~/*` files
 
 ```
 # cd ~/Downloads/
