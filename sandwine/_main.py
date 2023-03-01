@@ -103,7 +103,8 @@ def parse_command_line(args):
                           dest='x11',
                           action='store_const',
                           const=X11Mode.AUTO,
-                          help='enable nested X11 using Xephry or Xnest (default: X11 disabled)')
+                          help='enable nested X11 using X2Go nxagent or Xephry or Xnest or Xvfb'
+                          ' (default: X11 disabled)')
     x11_args.add_argument('--nxagent',
                           dest='x11',
                           action='store_const',
