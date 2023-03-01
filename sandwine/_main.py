@@ -192,16 +192,18 @@ class X11Context:
 
     @staticmethod
     def detect_nested():
-        for command, mode in [
+        tests = [
             ['nxagent', X11Mode.NXAGENT],
             ['Xephyr', X11Mode.XEPHYR],
             ['Xnest', X11Mode.XNEST],
-        ]:
+        ]
+        for command, mode in tests:
             if shutil.which(command) is not None:
                 _logger.info(f'Using {command} for nested X11.')
                 return mode
 
-        _logger.error('Neither Xephyr nor Xnest is available, please install, aborting.')
+        commands = [command for command, _ in tests]
+        _logger.error(f'Neither {" nor ".join(commands)} is available, please install, aborting.')
         sys.exit(127)
 
     def __enter__(self):
