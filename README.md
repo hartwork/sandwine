@@ -132,7 +132,7 @@ So what is shared with the application by default then?
 **sandwine** features include:
 
 - A focus on security, usability, transparency
-- Support for nested X11 (X2Go nxagent (seamless), Xephyr, Xnest)
+- Support for nested X11 (X2Go nxagent (seamless), Xephyr, Xnest, Xvfb)
 - Support for PulseAudio
 
 

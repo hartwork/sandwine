@@ -50,6 +50,7 @@ class X11Mode(Enum):
     NXAGENT = 'nxagent'
     XEPHYR = 'xephyr'
     XNEST = 'xnest'
+    XVFB = 'xvfb'
     NONE = 'none'
 
     @staticmethod
@@ -118,6 +119,11 @@ def parse_command_line(args):
                           action='store_const',
                           const=X11Mode.XNEST,
                           help='enable nested X11 using Xnest (default: X11 disabled)')
+    x11_args.add_argument('--xvfb',
+                          dest='x11',
+                          action='store_const',
+                          const=X11Mode.XVFB,
+                          help='enable nested X11 using Xvfb (default: X11 disabled)')
     x11_args.add_argument('--host-x11-danger-danger',
                           dest='x11',
                           action='store_const',
@@ -196,6 +202,7 @@ class X11Context:
             ['nxagent', X11Mode.NXAGENT],
             ['Xephyr', X11Mode.XEPHYR],
             ['Xnest', X11Mode.XNEST],
+            ['Xvfb', X11Mode.XVFB],
         ]
         for command, mode in tests:
             if shutil.which(command) is not None:
@@ -217,6 +224,8 @@ class X11Context:
                 argv = ['Xnest', '-geometry', self._geometry]
             elif X11Mode(self._config.x11) == X11Mode.NXAGENT:
                 argv = ['nxagent', '-nolisten', 'tcp', '-ac', '-noshmem', '-R']
+            elif X11Mode(self._config.x11) == X11Mode.XVFB:
+                argv = ['Xvfb', '-screen', '0', f'{self._geometry}x24', '-extension', 'MIT-SHM']
             else:
                 assert False, f'X11 mode {self._config.x11} not supported'
 
