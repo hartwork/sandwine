@@ -1,0 +1,106 @@
+# This file is part of the sandwine project.
+#
+# Copyright (c) 2023 Sebastian Pipping <sebastian@pipping.org>
+#
+# sandwine is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option)
+# any later version.
+#
+# sandwine is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with sandwine. If not, see <https://www.gnu.org/licenses/>.
+
+name: Run the test suite
+
+on:
+- pull_request
+- push
+
+jobs:
+  run-tests:
+    name: Run the test suite
+    strategy:
+      matrix:
+        python-version: [3.7, 3.11]  # no particular need for in-between versions
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        sudo dpkg --add-architecture i386
+        sudo apt-get update
+        sudo apt-get install --no-install-recommends --yes -V \
+            python3-pip \
+            wget \
+            wine32:i386 \
+            xvfb \
+            zenity
+
+    - name: Install sandwine
+      run: |
+        set -x -u
+        pip3 install -e .
+        echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
+
+    - name: Run smoke tests
+      run: |
+        set -x
+
+        python --version
+        head -n1 "$(type -P sandwine)"
+
+        sandwine --help
+        sandwine --version
+
+        # Defaults
+        sandwine -- CMD /C DIR 'Z:\'
+
+        # File system effect
+        sudo touch /mnt/file123
+        ls -l /mnt/file123
+        (
+          set +e
+          sandwine --no-wine -- ls -l /mnt/file123
+          [[ $? == 2 ]]
+        )
+        sandwine --no-wine --pass /mnt/file123:ro -- ls -l /mnt/file123
+        sandwine --no-wine --pass /mnt/:ro        -- ls -l /mnt/file123
+        sandwine --no-wine --pass /mnt:ro         -- ls -l /mnt/file123
+        sandwine --no-wine --pass /mnt:rw         -- ls -l /mnt/file123
+
+        # Custom wine prefix
+        mkdir dotwine
+        sandwine --dotwine dotwine/:rw -- CMD /C DIR "Z:\\home\\${USER}\\.wine\\"
+
+        # X11
+        (
+          set +e
+          sandwine --xvfb --no-wine -- zenity --timeout 1 --info hello
+          [[ $? == 5 ]]  # i.e. timout exceeded
+        )
+
+        # Retry
+        (
+          set +e
+          sandwine --retry --no-wine --pass "${PWD}":rw -- sh -c 'echo line >> file.txt ; exit 123'
+          [[ $? == 123 ]]
+        )
+        [[ "$(wc -l < file.txt)" == 2 ]]
+        rm file.txt
+
+        # Networking
+        wget -S -O/dev/null https://github.com/
+        (
+          set +e
+          sandwine --no-wine -- wget -S -O/dev/null https://github.com/
+          [[ $? == 4 ]]
+        )
+        sandwine --network --no-wine -- wget -S -O/dev/null https://github.com/
