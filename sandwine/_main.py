@@ -434,6 +434,7 @@ def create_bwrap_argv(config):
 
     # Filter ${PATH}
     candidate_paths = os.environ['PATH'].split(os.pathsep)
+    candidate_paths.append('/usr/lib/wine')  # for wineserver on e.g. Debian
     available_paths = []
     for candidate_path in candidate_paths:
         candidate_path = os.path.realpath(candidate_path)
