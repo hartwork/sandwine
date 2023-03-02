@@ -1,3 +1,7 @@
+[![Run the test suite](https://github.com/hartwork/sandwine/actions/workflows/run-tests.yml/badge.svg)](https://github.com/hartwork/sandwine/actions/workflows/run-tests.yml)
+[![Run pre-commit](https://github.com/hartwork/sandwine/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/hartwork/sandwine/actions/workflows/pre-commit.yml)
+
+
 # What is sandwine?
 
 **sandwine** is a command-line tool to run Windows applications on GNU/Linux
