@@ -408,16 +408,16 @@ def create_bwrap_argv(config):
                 mount_task.source = mount_task.target
 
             # NOTE: The X11 Unix socket will only show up later
-            keep_missing_target = X11Mode(
+            keep_missing_source = X11Mode(
                 config.x11) != X11Mode.NONE and mount_task.target == x11_unix_socket
 
-            if not os.path.exists(mount_task.target) and not keep_missing_target:
+            if not os.path.exists(mount_task.source) and not keep_missing_source:
                 if mount_task.required:
                     _logger.error(
-                        f'Path {mount_task.target!r} does not exist on the host, aborting.')
+                        f'Path {mount_task.source!r} does not exist on the host, aborting.')
                     sys.exit(1)
                 else:
-                    _logger.debug(f'Path {mount_task.target!r} does not exist on the host'
+                    _logger.debug(f'Path {mount_task.source!r} does not exist on the host'
                                   ', dropped from mount tasks.')
                     continue
 
