@@ -330,7 +330,8 @@ def create_bwrap_argv(config):
     if config.network:
         unshare_args += ['--share-net']
         mount_tasks += [
-            MountTask(MountMode.BIND_RO, '/run/NetworkManager/resolv.conf', required=False)
+            MountTask(MountMode.BIND_RO, '/run/NetworkManager/resolv.conf', required=False),
+            MountTask(MountMode.BIND_RO, '/run/systemd/resolve/stub-resolv.conf', required=False),
         ]
 
     # Sound
