@@ -77,7 +77,7 @@ jobs:
         sandwine --no-wine --pass /mnt:rw         -- ls -l /mnt/file123
 
         # Custom wine prefix
-        mkdir dotwine
+        mkdir dotwine  # to suppress call to winecfg
         sandwine --dotwine dotwine/:rw -- CMD /C DIR "Z:\\home\\${USER}\\.wine\\"
 
         # X11
