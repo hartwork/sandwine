@@ -103,7 +103,8 @@ def parse_command_line(args):
                           dest='x11',
                           action='store_const',
                           const=X11Mode.AUTO,
-                          help='enable nested X11 using X2Go nxagent or Xephry or Xnest or Xvfb'
+                          help='enable nested X11 using X2Go nxagent or Xephry or Xnest'
+                          ' but not Xvfb'
                           ' (default: X11 disabled)')
     x11_args.add_argument('--nxagent',
                           dest='x11',
@@ -200,10 +201,11 @@ class X11Context:
     @staticmethod
     def detect_nested():
         tests = [
+            # NOTE: No Xvfb here because this is meant to be about
+            #       options with user-visible Windows
             ['nxagent', X11Mode.NXAGENT],
             ['Xephyr', X11Mode.XEPHYR],
             ['Xnest', X11Mode.XNEST],
-            ['Xvfb', X11Mode.XVFB],
         ]
         for command, mode in tests:
             if shutil.which(command) is not None:
