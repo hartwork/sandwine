@@ -1,6 +1,8 @@
 [![Run the test suite](https://github.com/hartwork/sandwine/actions/workflows/run-tests.yml/badge.svg)](https://github.com/hartwork/sandwine/actions/workflows/run-tests.yml)
 [![Run pre-commit](https://github.com/hartwork/sandwine/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/hartwork/sandwine/actions/workflows/pre-commit.yml)
 
+[![sandwine_threat_model.png](https://raw.githubusercontent.com/hartwork/sandwine/main/sandwine_threat_model.png)](https://github.com/hartwork/sandwine#threat-model-and-known-limitations)
+
 
 # What is sandwine?
 
