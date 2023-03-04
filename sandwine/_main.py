@@ -18,6 +18,7 @@
 import glob
 import logging
 import os
+import random
 import shlex
 import shutil
 import signal
@@ -303,6 +304,10 @@ class MountTask:
     required: bool = True
 
 
+def random_hostname():
+    return ''.join(hex(random.randint(0, 15))[2:] for _ in range(12))
+
+
 def create_bwrap_argv(config):
     my_home = os.path.realpath(os.path.expanduser('~'))
     mount_tasks = [
@@ -327,6 +332,11 @@ def create_bwrap_argv(config):
 
     argv.add('bwrap')
     argv.add('--new-session')
+
+    # Hostname
+    hostname = random_hostname()
+    env_tasks['HOSTNAME'] = hostname
+    argv.add('--hostname', hostname)
 
     # Networking
     if config.network:
