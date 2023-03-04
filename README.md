@@ -147,9 +147,13 @@ So what is shared with the application by default then?
   a virtual machine rather than sandwine, e.g. because your username
   is exposed to the running application and depending on your threat model,
   that may be too much already.
-  Also sandwine has not seen any known external security audits, yet.
+- sandwine is not intended for use with known-malicous software, viruses, malware.
+- sandwine has not seen any known external security audits, yet.
 - sandwine relies on [bubblewrap](https://github.com/containers/bubblewrap)
   for its security, so it can only be as secure as bubblewrap.
+- sandwine does not limit the set of syscalls that the application can do.
+  bubblewrap supports arguments `--seccomp` and `--add-seccomp-fd` to go further
+  on that end, but sandwine does not use them so far.
 - sandwine does not keep the application from using loads of RAM, CPU time and/or disk space.
   If your concerns include **denial of service**, you need protection beyond sandwine.
 - sandwine relies on sane file permissions in the places that are shared read-only.
