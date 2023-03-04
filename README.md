@@ -128,6 +128,7 @@ So what is shared with the application by default then?
 
 - `${DISPLAY}`
 - `${HOME}`
+- `${HOSTNAME}` (with random 12-hex-digits value)
 - `${PATH}` (with known-unavailable entries removed)
 - `${TERM}`
 - `${USER}`
