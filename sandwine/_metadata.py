@@ -16,4 +16,4 @@
 # with sandwine. If not, see <https://www.gnu.org/licenses/>.
 
 DESCRIPTION = 'Command-line tool to run Windows apps with Wine and bwrap/bubblewrap isolation'
-VERSION = '1.2.0'
+VERSION = '1.3.0'
