@@ -96,8 +96,8 @@ To achieve that, by default the launched application:
 
 - Sees no files in ``${HOME}`` and/or `/home/` (unless you pass `--pass PATH:{ro,rw}` for a related directory).
 - Does not have access to the internet (unless you pass ``--network``).
-- Does not have access to your local X11 server.
-  (unless you enabled some form of X11 integration, ideally nested X11).
+- Does not have access to your local X11 server
+  (unless you enable some form of X11 integration, ideally nested X11).
 - Does not have access to your sound card.
 
 So what is shared with the application by default then?
