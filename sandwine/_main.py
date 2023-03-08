@@ -387,7 +387,9 @@ def create_bwrap_argv(config):
 
     # Extra binds
     for bind in config.extra_binds:
-        mount_target, mount_access = parse_path_colon_access(bind)
+        mount_target_orig, mount_access = parse_path_colon_access(bind)
+        mount_target = os.path.abspath(mount_target_orig)
+        del mount_target_orig
         if mount_access == AccessMode.READ_WRITE:
             mount_mode = MountMode.BIND_RW
         else:
