@@ -15,16 +15,13 @@
 # You should have received a copy of the GNU General Public License along
 # with sandwine. If not, see <https://www.gnu.org/licenses/>.
 
-import glob
 import logging
 import os
 import random
 import shlex
-import shutil
 import signal
 import subprocess
 import sys
-import time
 from argparse import ArgumentParser, RawTextHelpFormatter
 from contextlib import nullcontext
 from dataclasses import dataclass
@@ -36,6 +33,7 @@ from typing import Optional
 import coloredlogs
 
 from sandwine._metadata import DESCRIPTION, VERSION
+from sandwine._x11 import X11Display, X11Mode, create_x11_context, detect_and_require_nested_x11
 
 _logger = logging.getLogger(__name__)
 
@@ -43,20 +41,6 @@ _logger = logging.getLogger(__name__)
 class AccessMode(Enum):
     READ_ONLY = 'ro'
     READ_WRITE = 'rw'
-
-
-class X11Mode(Enum):
-    AUTO = 'auto'
-    HOST = 'host'
-    NXAGENT = 'nxagent'
-    XEPHYR = 'xephyr'
-    XNEST = 'xnest'
-    XVFB = 'xvfb'
-    NONE = 'none'
-
-    @staticmethod
-    def values():
-        return [x.value for x in X11Mode.__members__.values()]
 
 
 class MountMode(Enum):
@@ -175,84 +159,6 @@ def parse_command_line(args):
     return parser.parse_args(args)
 
 
-class X11Context:
-
-    def __init__(self, config):
-        self._config = config
-        self._geometry = '1024x768'
-        self._process = None
-
-    @staticmethod
-    def get_host_display() -> int:
-        try:
-            return int(os.environ['DISPLAY'][1:])
-        except (KeyError, ValueError):
-            return 0
-
-    @staticmethod
-    def find_unused_display() -> int:
-        used_displays = {int(os.path.basename(p)[1:]) for p in glob.glob('/tmp/.X11-unix/X*')}
-        candidate_displays = set(list(range(len(used_displays))) + [len(used_displays)])
-        return sorted(candidate_displays - used_displays)[-1]
-
-    @staticmethod
-    def get_unix_socket_for(display: int) -> str:
-        return f'/tmp/.X11-unix/X{display}'
-
-    @staticmethod
-    def detect_nested():
-        tests = [
-            # NOTE: No Xvfb here because this is meant to be about
-            #       options with user-visible Windows
-            ['nxagent', X11Mode.NXAGENT],
-            ['Xephyr', X11Mode.XEPHYR],
-            ['Xnest', X11Mode.XNEST],
-        ]
-        for command, mode in tests:
-            if shutil.which(command) is not None:
-                _logger.info(f'Using {command} for nested X11.')
-                return mode
-
-        commands = [command for command, _ in tests]
-        _logger.error(f'Neither {" nor ".join(commands)} is available, please install, aborting.')
-        sys.exit(127)
-
-    def __enter__(self):
-        if X11Mode(self._config.x11) != X11Mode.HOST:
-            # NOTE: Extension MIT-SHM is disabled because it kept crashing Xephyr 21.1.7
-            #       and nxagent/X2Go 4.1.0.3 when moving windows around near screen edges.
-            #       PS: Xnest does not support extension MIT-SHM.
-            if X11Mode(self._config.x11) == X11Mode.XEPHYR:
-                argv = ['Xephyr', '-screen', self._geometry, '-extension', 'MIT-SHM']
-            elif X11Mode(self._config.x11) == X11Mode.XNEST:
-                argv = ['Xnest', '-geometry', self._geometry]
-            elif X11Mode(self._config.x11) == X11Mode.NXAGENT:
-                argv = ['nxagent', '-nolisten', 'tcp', '-ac', '-noshmem', '-R']
-            elif X11Mode(self._config.x11) == X11Mode.XVFB:
-                argv = ['Xvfb', '-screen', '0', f'{self._geometry}x24', '-extension', 'MIT-SHM']
-            else:
-                assert False, f'X11 mode {self._config.x11} not supported'
-
-            argv += [f':{self._config.x11_display_number}']
-
-            _logger.info('Starting nested X11...')
-            try:
-                self._process = subprocess.Popen(argv)
-            except FileNotFoundError:
-                _logger.error(f'Command {argv[0]!r} is not available, aborting.')
-                sys.exit(127)
-
-        x11_unix_socket = self.get_unix_socket_for(self._config.x11_display_number)
-        while not os.path.exists(x11_unix_socket):
-            time.sleep(0.5)
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        if self._process is not None:
-            _logger.info('Shutting down nested X11...')
-            self._process.send_signal(signal.SIGINT)
-            self._process.wait()
-
-
 class ArgvBuilder:
 
     def __init__(self):
@@ -356,7 +262,7 @@ def create_bwrap_argv(config):
 
     # X11
     if X11Mode(config.x11) != X11Mode.NONE:
-        x11_unix_socket = X11Context.get_unix_socket_for(config.x11_display_number)
+        x11_unix_socket = X11Display(config.x11_display_number).get_unix_socket()
         mount_tasks += [MountTask(MountMode.BIND_RW, x11_unix_socket)]
         env_tasks['DISPLAY'] = f':{config.x11_display_number}'
 
@@ -510,16 +416,16 @@ def main():
 
         if X11Mode(config.x11) != X11Mode.NONE:
             if X11Mode(config.x11) == X11Mode.AUTO:
-                config.x11 = X11Context.detect_nested()
+                config.x11 = detect_and_require_nested_x11()
 
             if X11Mode(config.x11) == X11Mode.HOST:
-                config.x11_display_number = X11Context.get_host_display()
+                config.x11_display_number = X11Display.find_used()
             else:
-                config.x11_display_number = X11Context.find_unused_display()
+                config.x11_display_number = X11Display.find_unused()
 
             _logger.info('Using display ":%s"...', config.x11_display_number)
 
-            x11context = X11Context(config)
+            x11context = create_x11_context(config.x11, config.x11_display_number, 1024, 768)
         else:
             x11context = nullcontext()
 
