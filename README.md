@@ -156,7 +156,7 @@ So what is shared with the application by default then?
   a virtual machine rather than sandwine, e.g. because your username
   is exposed to the running application and depending on your threat model,
   that may be too much already.
-- sandwine is not intended for use with known-malicous software, viruses, malware.
+- sandwine is not intended for use with known-malicious software, viruses, malware.
 - sandwine has not seen any known external security audits, yet.
 - sandwine relies on [bubblewrap](https://github.com/containers/bubblewrap)
   for its security, so it can only be as secure as bubblewrap.
