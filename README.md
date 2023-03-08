@@ -96,8 +96,8 @@ To achieve that, by default the launched application:
 
 - Sees no files in ``${HOME}`` and/or `/home/` (unless you pass `--pass PATH:{ro,rw}` for a related directory).
 - Does not have access to the internet (unless you pass ``--network``).
-- Does not have access to your local X11 server.
-  (unless you enabled some form of X11 integration, ideally nested X11).
+- Does not have access to your local X11 server
+  (unless you enable some form of X11 integration, ideally nested X11).
 - Does not have access to your sound card.
 
 So what is shared with the application by default then?
@@ -156,7 +156,7 @@ So what is shared with the application by default then?
   a virtual machine rather than sandwine, e.g. because your username
   is exposed to the running application and depending on your threat model,
   that may be too much already.
-- sandwine is not intended for use with known-malicous software, viruses, malware.
+- sandwine is not intended for use with known-malicious software, viruses, malware.
 - sandwine has not seen any known external security audits, yet.
 - sandwine relies on [bubblewrap](https://github.com/containers/bubblewrap)
   for its security, so it can only be as secure as bubblewrap.
