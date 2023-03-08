@@ -309,7 +309,7 @@ def random_hostname():
 
 
 def create_bwrap_argv(config):
-    my_home = os.path.realpath(os.path.expanduser('~'))
+    my_home = os.path.expanduser('~')
     mount_tasks = [
         MountTask(MountMode.TMPFS, '/'),
         MountTask(MountMode.BIND_RO, '/bin'),
@@ -397,7 +397,7 @@ def create_bwrap_argv(config):
 
     # Program
     if os.sep in (config.argv_0 or ''):
-        real_argv_0 = os.path.realpath(config.argv_0)
+        real_argv_0 = os.path.abspath(config.argv_0)
         mount_tasks += [
             MountTask(MountMode.BIND_RO, real_argv_0, required=False),
             MountTask(MountMode.BIND_RO, real_argv_0 + '.exe', required=False),
