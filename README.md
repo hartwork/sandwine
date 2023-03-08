@@ -29,10 +29,10 @@ is licensed under the "GPL v3 or later" license.
 ```
 # cd ~/Downloads/
 # sha256sum -c <(echo 'ac70a0c8a2928c91400b9ac3774b331f1d700f3486bab674dbd09da6b31fe130  winamp566_full_en-us.exe')
-# WINEDEBUG=-all sandwine --dotwine winamp/:rw ./winamp566_full_en-us.exe /S /D='C:\Program' 'Files' '(x86)\Winamp 5.66'
+# WINEDEBUG=-all sandwine --dotwine winamp/:rw ./winamp566_full_en-us.exe /S /D='C:\Program' 'Files' '(x86)\Winamp' '5.66'
 ```
 
-(The weird quoting in `/D='C:\Program' 'Files' '(x86)\Winamp 5.66'`
+(The weird quoting in `/D='C:\Program' 'Files' '(x86)\Winamp' '5.66'`
 is [documented behavior](https://nsis.sourceforge.io/Which_command_line_parameters_can_be_used_to_configure_installers%3F)
 for NSIS.)
 
