@@ -333,6 +333,7 @@ def create_bwrap_argv(config):
 
     argv.add('bwrap')
     argv.add('--new-session')
+    argv.add('--die-with-parent')
 
     # Hostname
     hostname = random_hostname()
