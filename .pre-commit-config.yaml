@@ -44,3 +44,5 @@ repos:
     rev: v0.33.0
     hooks:
       - id: yapf
+        additional_dependencies:
+          - toml
