@@ -69,7 +69,7 @@ crash from graphics issues in a fresh Wine environment
 the first but not the second time.
 Potentially a bug in Wine, needs more investigation.
 
-PS: The Geiss Screensaver has its home at [geisswerks.com](https://www.geisswerks.com/geiss/).
+PS: The Geiss Screensaver has its GitHub home at https://github.com/geissomatik/geiss .
 
 
 ### Run wget: with networking, no X11, no sound, no access to `~/*` files
