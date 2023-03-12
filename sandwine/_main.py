@@ -26,13 +26,13 @@ from argparse import ArgumentParser, RawTextHelpFormatter
 from contextlib import nullcontext
 from dataclasses import dataclass
 from enum import Enum, auto
+from importlib.metadata import metadata
 from operator import attrgetter, itemgetter
 from textwrap import dedent
 from typing import Optional
 
 import coloredlogs
 
-from sandwine._metadata import DESCRIPTION, VERSION
 from sandwine._x11 import X11Display, X11Mode, create_x11_context, detect_and_require_nested_x11
 
 _logger = logging.getLogger(__name__)
@@ -53,6 +53,8 @@ class MountMode(Enum):
 
 
 def parse_command_line(args):
+    distribution = metadata('sandwine')
+
     usage = dedent('''\
         usage: sandwine [OPTIONS] [--] PROGRAM [ARG ..]
            or: sandwine [OPTIONS] --configure
@@ -63,7 +65,7 @@ def parse_command_line(args):
     parser = ArgumentParser(
         prog='sandwine',
         usage=usage,
-        description=DESCRIPTION,
+        description=distribution['Summary'],
         formatter_class=RawTextHelpFormatter,
         epilog=dedent("""\
         Software libre licensed under GPL v3 or later.
@@ -73,7 +75,7 @@ def parse_command_line(args):
     """),
     )
 
-    parser.add_argument('--version', action='version', version=VERSION)
+    parser.add_argument('--version', action='version', version=distribution['Version'])
 
     program = parser.add_argument_group('positional arguments')
     program.add_argument('argv_0', metavar='PROGRAM', nargs='?', help='command to run')
