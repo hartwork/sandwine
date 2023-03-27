@@ -38,11 +38,30 @@ jobs:
         sudo dpkg --add-architecture i386
         sudo apt-get update
         sudo apt-get install --no-install-recommends --yes -V \
+            libcap-dev \
             python3-pip \
             wget \
             wine32:i386 \
             xvfb \
             zenity
+
+    - name: Install recent-enough Bubblewrap
+      run: |
+        bubble_wrap_version=0.8.0
+        bubble_wrap_sha256sum=957ad1149db9033db88e988b12bcebe349a445e1efc8a9b59ad2939a113d333a
+
+        set -x -u
+
+        wget https://github.com/containers/bubblewrap/releases/download/v${bubble_wrap_version}/bubblewrap-${bubble_wrap_version}.tar.xz
+        sha256sum -c <(echo "${bubble_wrap_sha256sum} *bubblewrap-${bubble_wrap_version}.tar.xz")
+
+        tar xf bubblewrap-${bubble_wrap_version}.tar.xz
+        cd bubblewrap-${bubble_wrap_version}
+        ./configure
+        make -j$(nproc)
+        sudo make install
+
+        [[ "$(bwrap --version)" = "bubblewrap ${bubble_wrap_version}" ]]
 
     - name: Install sandwine
       run: |
