@@ -233,7 +233,7 @@ def create_bwrap_argv(config):
     ]
     env_tasks = {var: None for var in ['HOME', 'TERM', 'USER', 'WINEDEBUG']}
     env_tasks['container'] = 'sandwine'
-    unshare_args = ['--unshare-all']
+    unshare_args = ['--unshare-user', '--unshare-all']
 
     argv = ArgvBuilder()
 
