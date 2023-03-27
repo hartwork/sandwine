@@ -239,6 +239,7 @@ def create_bwrap_argv(config):
 
     argv.add('bwrap')
     argv.add('--new-session')
+    argv.add('--disable-userns')
     argv.add('--die-with-parent')
 
     # Hostname
@@ -407,12 +408,22 @@ def create_bwrap_argv(config):
     return argv
 
 
+def require_recent_bubblewrap():
+    argv = ['bwrap', '--disable-userns', '--help']
+    if subprocess.call(argv, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) != 0:
+        _logger.error('sandwine requires bubblewrap >=0.8.0'
+                      ', aborting.')
+        sys.exit(1)
+
+
 def main():
     exit_code = 0
     try:
         config = parse_command_line(sys.argv[1:])
 
         coloredlogs.install(level=logging.DEBUG)
+
+        require_recent_bubblewrap()
 
         if X11Mode(config.x11) != X11Mode.NONE:
             if X11Mode(config.x11) == X11Mode.AUTO:
