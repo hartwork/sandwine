@@ -10,7 +10,7 @@
 **sandwine** is a command-line tool to run Windows applications on GNU/Linux
 that offers more isolation than raw [Wine](https://www.winehq.org/)
 and more convenience than raw [bubblewrap](https://github.com/containers/bubblewrap).
-It *uses* Wine and bubblewrap, it does not replace them.
+It *uses* Wine and bubblewrap (>=0.8.0), it does not replace them.
 **sandwine** is Software Libre written in Python 3, and
 is licensed under the "GPL v3 or later" license.
 
