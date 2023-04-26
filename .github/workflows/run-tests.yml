@@ -44,6 +44,16 @@ jobs:
             wine32:i386 \
             xvfb \
             zenity
+        pip3 install --ignore-installed build pip setuptools wheel
+
+    - name: Build sandwine
+      run: |
+        set -x
+        python3 -m build
+
+        ls -l dist/
+        tar vtf dist/sandwine-*.tar.gz
+        unzip -l dist/sandwine-*.whl
 
     - name: Install recent-enough Bubblewrap
       run: |
