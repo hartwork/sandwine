@@ -17,6 +17,7 @@
 
 import logging
 import os
+import pty
 import random
 import shlex
 import signal
@@ -145,6 +146,13 @@ def parse_command_line(args):
                          action='store_true',
                          help='enforce running winecfg before start of PROGRAM'
                          ' (default: run winecfg as needed)')
+    general.add_argument('--no-pty',
+                         dest='with_pty',
+                         default=True,
+                         action='store_false',
+                         help='refrain from creating a pseudo-terminal'
+                         ', stop protecting against TIOCSTI/TIOCLINUX hijacking (CAREFUL!)'
+                         ' (default: create a pseudo-terminal)')
     general.add_argument('--no-wine',
                          dest='with_wine',
                          default=True,
@@ -240,7 +248,6 @@ def create_bwrap_argv(config):
     argv = ArgvBuilder()
 
     argv.add('bwrap')
-    argv.add('--new-session')
     argv.add('--disable-userns')
     argv.add('--die-with-parent')
 
@@ -418,6 +425,19 @@ def require_recent_bubblewrap():
         sys.exit(1)
 
 
+def spawn_argv(argv: list[str], with_pty: bool) -> int:
+    if not with_pty:
+        return subprocess.call(argv)
+
+    wait_status = pty.spawn(argv)
+
+    exit_code = os.waitstatus_to_exitcode(wait_status)
+    if exit_code < 0:  # e.g. -2 for "killed by SIGINT"
+        exit_code = 128 - exit_code  # e.g. -2 -> 130
+
+    return exit_code
+
+
 def main():
     exit_code = 0
     try:
@@ -449,7 +469,7 @@ def main():
 
         with x11context:
             try:
-                exit_code = subprocess.call(argv)
+                exit_code = spawn_argv(argv, with_pty=config.with_pty)
             except FileNotFoundError:
                 _logger.error(f'Command {argv[0]!r} is not available, aborting.')
                 exit_code = 127

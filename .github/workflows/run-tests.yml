@@ -133,3 +133,10 @@ jobs:
           [[ $? == 4 ]]
         )
         sandwine --network --no-wine -- wget -S -O/dev/null https://github.com/
+
+        # Without PTY (not recommended!)
+        (
+          set +e
+          sandwine --no-wine --no-pty -- sh -c 'exit 123'
+          [[ $? == 123 ]]
+        )
