@@ -1,0 +1,59 @@
+# This file is part of the sandwine project.
+#
+# Copyright (c) 2023 Sebastian Pipping <sebastian@pipping.org>
+#
+# sandwine is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option)
+# any later version.
+#
+# sandwine is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with sandwine. If not, see <https://www.gnu.org/licenses/>.
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sandwine"
+version = "1.3.3"
+license = {text = "GPLv3+"}
+description = "Command-line tool to run Windows apps with Wine and bwrap/bubblewrap isolation"
+readme = {file = "README.md", content-type = "text/markdown"}
+authors = [
+  { name="Sebastian Pipping", email="sebastian@pipping.org" },
+]
+requires-python = ">=3.8"
+dependencies = [
+  "coloredlogs>=15.0.1",
+]
+keywords = ["Wine", "sandbox", "sandboxing", "bubblewrap", "bwrap"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Intended Audience :: Developers",
+  "Intended Audience :: End Users/Desktop",
+  "Operating System :: Unix",
+  "Topic :: Security",
+  "Topic :: System :: Emulators",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/hartwork/sandwine"
+"Bug Tracker" = "https://github.com/hartwork/sandwine/issues"
+
+[project.scripts]
+sandwine = "sandwine._main:main"

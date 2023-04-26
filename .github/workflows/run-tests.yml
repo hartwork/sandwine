@@ -26,7 +26,7 @@ jobs:
     name: Run the test suite
     strategy:
       matrix:
-        python-version: [3.7, 3.11]  # no particular need for in-between versions
+        python-version: [3.8, 3.11]  # no particular need for in-between versions
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab  # v3.5.2
@@ -44,6 +44,16 @@ jobs:
             wine32:i386 \
             xvfb \
             zenity
+        pip3 install --ignore-installed build pip setuptools wheel
+
+    - name: Build sandwine
+      run: |
+        set -x
+        python3 -m build
+
+        ls -l dist/
+        tar vtf dist/sandwine-*.tar.gz
+        unzip -l dist/sandwine-*.whl
 
     - name: Install recent-enough Bubblewrap
       run: |
