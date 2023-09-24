@@ -189,7 +189,7 @@ class ArgvBuilder:
     def announce_to(self, target):
         for i, group in enumerate(self._groups):
             prefix = '# ' if (i == 0) else ' ' * 4
-            flat_args = ' '.join(shlex.quote(arg) for arg in group)
+            flat_args = shlex.join(group)
             suffix = '' if (i == len(self._groups) - 1) else ' \\'
             print(f'{prefix}{flat_args}{suffix}', file=target)
 
