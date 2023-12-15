@@ -92,7 +92,7 @@ def parse_command_line(args):
                           action='store_const',
                           const=X11Mode.AUTO,
                           help='enable nested X11 using X2Go nxagent or Xephry or Xnest'
-                          ' but not Xvfb'
+                          ' but not Xvfb and not Xpra'
                           ' (default: X11 disabled)')
     x11_args.add_argument('--nxagent',
                           dest='x11',
@@ -109,6 +109,12 @@ def parse_command_line(args):
                           action='store_const',
                           const=X11Mode.XNEST,
                           help='enable nested X11 using Xnest (default: X11 disabled)')
+    x11_args.add_argument('--xpra',
+                          dest='x11',
+                          action='store_const',
+                          const=X11Mode.XPRA,
+                          help='enable nested X11 using Xpra (EXPERIMENTAL, CAREFUL!)'
+                          ' (default: X11 disabled)')
     x11_args.add_argument('--xvfb',
                           dest='x11',
                           action='store_const',
@@ -454,7 +460,10 @@ def main():
             if X11Mode(config.x11) == X11Mode.HOST:
                 config.x11_display_number = X11Display.find_used()
             else:
-                config.x11_display_number = X11Display.find_unused()
+                minimum = 0
+                if X11Mode(config.x11) == X11Mode.XPRA:
+                    minimum = 10  # Avoids warning from Xpra for displays <=9
+                config.x11_display_number = X11Display.find_unused(minimum)
 
             _logger.info('Using display ":%s"...', config.x11_display_number)
 
