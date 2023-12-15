@@ -72,15 +72,15 @@ class X11Display:
 
 
 class _X11Context(ABC):
+    _command = None
 
     def __init__(self, display_number: int, width: int, height: int):
         self._display_number: int = display_number
         self._geometry: str = f'{width}x{height}'
 
     @classmethod
-    @abstractmethod
     def is_available(cls):
-        raise NotImplementedError
+        return shutil.which(cls._command) is not None
 
     @abstractmethod
     def __enter__(self):
@@ -92,15 +92,10 @@ class _X11Context(ABC):
 
 
 class _SimpleX11Context(_X11Context):
-    _command = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._process = None
-
-    @classmethod
-    def is_available(cls):
-        return shutil.which(cls._command) is not None
 
     def __enter__(self):
         _logger.info('Starting nested X11...')
