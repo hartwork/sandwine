@@ -77,7 +77,9 @@ class X11Display:
 
 class _X11Context(ABC):
     _message_starting = 'Starting nested X11...'
+    _message_started = 'Nested X11 ready.'
     _message_stopping = 'Shutting down nested X11...'
+    _message_stopped = 'Nested X11 gone.'
 
     _command = None
 
@@ -116,11 +118,14 @@ class _SimpleX11Context(_X11Context):
 
         X11Display(self._display_number).wait_until_available()
 
+        _logger.info(self._message_started)
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self._process is not None:
             _logger.info(self._message_stopping)
             self._process.send_signal(signal.SIGINT)
             self._process.wait()
+            _logger.info(self._message_stopped)
 
 
 class NxagentContext(_SimpleX11Context):
