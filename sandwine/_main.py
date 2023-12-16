@@ -17,7 +17,6 @@
 
 import logging
 import os
-import pty
 import random
 import shlex
 import signal
@@ -34,6 +33,7 @@ from typing import Optional
 
 import coloredlogs
 
+from sandwine._pty import pty_spawn_argv
 from sandwine._x11 import X11Display, X11Mode, create_x11_context, detect_and_require_nested_x11
 
 _logger = logging.getLogger(__name__)
@@ -435,13 +435,7 @@ def spawn_argv(argv: list[str], with_pty: bool) -> int:
     if not with_pty:
         return subprocess.call(argv)
 
-    wait_status = pty.spawn(argv)
-
-    exit_code = os.waitstatus_to_exitcode(wait_status)
-    if exit_code < 0:  # e.g. -2 for "killed by SIGINT"
-        exit_code = 128 - exit_code  # e.g. -2 -> 130
-
-    return exit_code
+    return pty_spawn_argv(argv)
 
 
 def main():
