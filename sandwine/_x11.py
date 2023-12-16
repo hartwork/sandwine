@@ -76,6 +76,9 @@ class X11Display:
 
 
 class _X11Context(ABC):
+    _message_starting = 'Starting nested X11...'
+    _message_stopping = 'Shutting down nested X11...'
+
     _command = None
 
     def __init__(self, display_number: int, width: int, height: int):
@@ -102,7 +105,8 @@ class _SimpleX11Context(_X11Context):
         self._process = None
 
     def __enter__(self):
-        _logger.info('Starting nested X11...')
+        _logger.info(self._message_starting)
+
         argv = self._create_argv()
         try:
             self._process = subprocess.Popen(argv)
@@ -114,7 +118,7 @@ class _SimpleX11Context(_X11Context):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self._process is not None:
-            _logger.info('Shutting down nested X11...')
+            _logger.info(self._message_stopping)
             self._process.send_signal(signal.SIGINT)
             self._process.wait()
 
