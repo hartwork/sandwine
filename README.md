@@ -144,6 +144,7 @@ So what is shared with the application by default then?
   - X2Go nxagent (seamless)
   - Xephyr
   - Xnest
+  - Xpra (experimental, careful!)
   - Xvfb (invisible)
 - Support for PulseAudio
 - Support for `/etc/resolv.conf` provided by:

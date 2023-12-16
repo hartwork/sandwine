@@ -22,12 +22,19 @@ import shutil
 import signal
 import subprocess
 import sys
+import tempfile
 import time
 from abc import ABC, abstractmethod
 from contextlib import nullcontext
 from enum import Enum
+from textwrap import dedent
 
 _logger = logging.getLogger(__name__)
+
+
+def _wait_until_file_present(filename):
+    while not os.path.exists(filename):
+        time.sleep(0.5)
 
 
 class X11Mode(Enum):
@@ -36,6 +43,7 @@ class X11Mode(Enum):
     NXAGENT = 'nxagent'
     XEPHYR = 'xephyr'
     XNEST = 'xnest'
+    XPRA = 'xpra'
     XVFB = 'xvfb'
     NONE = 'none'
 
@@ -54,13 +62,12 @@ class X11Display:
 
     def wait_until_available(self):
         x11_unix_socket = self.get_unix_socket()
-        while not os.path.exists(x11_unix_socket):
-            time.sleep(0.5)
+        _wait_until_file_present(x11_unix_socket)
 
     @staticmethod
-    def find_unused() -> int:
+    def find_unused(minimum: int = 0) -> int:
         used_displays = {int(os.path.basename(p)[1:]) for p in glob.glob('/tmp/.X11-unix/X*')}
-        candidate_displays = set(list(range(len(used_displays))) + [len(used_displays)])
+        candidate_displays = set(list(range(len(used_displays))) + [len(used_displays)] + [minimum])
         return sorted(candidate_displays - used_displays)[-1]
 
     @staticmethod
@@ -72,15 +79,20 @@ class X11Display:
 
 
 class _X11Context(ABC):
+    _message_starting = 'Starting nested X11...'
+    _message_started = 'Nested X11 ready.'
+    _message_stopping = 'Shutting down nested X11...'
+    _message_stopped = 'Nested X11 gone.'
+
+    _command = None
 
     def __init__(self, display_number: int, width: int, height: int):
         self._display_number: int = display_number
         self._geometry: str = f'{width}x{height}'
 
     @classmethod
-    @abstractmethod
     def is_available(cls):
-        raise NotImplementedError
+        return shutil.which(cls._command) is not None
 
     @abstractmethod
     def __enter__(self):
@@ -92,18 +104,14 @@ class _X11Context(ABC):
 
 
 class _SimpleX11Context(_X11Context):
-    _command = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._process = None
 
-    @classmethod
-    def is_available(cls):
-        return shutil.which(cls._command) is not None
-
     def __enter__(self):
-        _logger.info('Starting nested X11...')
+        _logger.info(self._message_starting)
+
         argv = self._create_argv()
         try:
             self._process = subprocess.Popen(argv)
@@ -113,11 +121,14 @@ class _SimpleX11Context(_X11Context):
 
         X11Display(self._display_number).wait_until_available()
 
+        _logger.info(self._message_started)
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self._process is not None:
-            _logger.info('Shutting down nested X11...')
+            _logger.info(self._message_stopping)
             self._process.send_signal(signal.SIGINT)
             self._process.wait()
+            _logger.info(self._message_stopped)
 
 
 class NxagentContext(_SimpleX11Context):
@@ -148,6 +159,130 @@ class XnestX11Context(_SimpleX11Context):
 
     def _create_argv(self):
         return [self._command, '-geometry', self._geometry, f':{self._display_number}']
+
+
+class XpraContext(_X11Context):
+    _command = 'xpra'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._client_process = None
+        self._server_process = None
+        self._tempdir = None
+
+    @staticmethod
+    def _write_xvfh_wrapper_script_to(xvfb_wrapper_path):
+        with open(xvfb_wrapper_path, 'w') as f:
+            print(dedent("""\
+                #! /usr/bin/env bash
+                set -e
+                args=(
+                    +extension GLX
+                    +extension Composite
+                    # NOTE: Extension MIT-SHM is disabled because it kept crashing Xephyr 21.1.7
+                    #       and nxagent/X2Go 4.1.0.3 when moving windows around near screen edges.
+                    -extension MIT-SHM
+                    # NOTE: This is the Xpra default, 1024x768x24+32 was rejected in practice.
+                    -screen 0 8192x4096x24+32
+                    -nolisten tcp
+                    -noreset
+                    # NOTE: We are trying to protect the host from the app,
+                    #       *not* the app from the host.
+                    # -auth [..]
+                    -dpi 96
+                    "$@"
+                )
+                PS4='# '
+                set -x
+                exec Xvfb "${args[@]}"
+            """),
+                  file=f)
+            os.fchmod(f.fileno(), 0o755)  # i.e. make executable
+
+    def __enter__(self):
+        _logger.info(self._message_starting)
+
+        self._tempdir = tempfile.TemporaryDirectory()
+        self._tempdir.__enter__()
+
+        unix_socket_path = os.path.join(self._tempdir.name, 'xpra-socket')
+        xvfb_wrapper_path = os.path.join(self._tempdir.name, 'xpra-xvfb.sh')
+        sessions_path = os.path.join(self._tempdir.name, 'xpra-sessions')
+
+        self._write_xvfh_wrapper_script_to(xvfb_wrapper_path)
+
+        server_argv = [
+            self._command,
+            'start',
+            # NOTE: This is experimental and some of these options
+            #       may need a closer look and/or re-evaluation.
+            #       Experimental implies risky to depend on for security!
+            '--attach=no',
+            '--bandwidth-limit=0',
+            '--bell=no',
+            f'--bind={unix_socket_path}',
+            '--clipboard=no',
+            '--daemon=no',
+            '--dbus-launch=',
+            '--dbus-proxy=no',
+            '--file-transfer=no',
+            '--html=off',
+            '--http-scripts=off',
+            '--microphone=off',
+            '--min-quality=100',
+            '--open-files=no',
+            '--open-url=no',
+            '--printing=no',
+            '--proxy-start-sessions=no',
+            '--pulseaudio=no',
+            '--quality=100',
+            f'--sessions-dir={sessions_path}',
+            '--speaker=off',
+            '--start-new-commands=no',
+            '--systemd-run=no',
+            '--use-display=no',
+            '--video-scaling=0',
+            '--webcam=no',
+            '--xsettings=no',
+            f'--xvfb={xvfb_wrapper_path}',
+            f':{self._display_number}',
+        ]
+        client_argv = [
+            self._command,
+            'attach',
+            f'--sessions-dir={sessions_path}',
+            unix_socket_path,
+        ]
+
+        client_env = os.environ.copy()
+        client_env.pop('SSH_AUTH_SOCK', None)
+
+        try:
+            self._server_process = subprocess.Popen(server_argv)
+            _wait_until_file_present(unix_socket_path)
+            self._client_process = subprocess.Popen(client_argv, env=client_env)
+        except FileNotFoundError:
+            _logger.error(f'Command {self._command!r} is not available, aborting.')
+            sys.exit(127)
+
+        X11Display(self._display_number).wait_until_available()
+
+        _logger.info(self._message_started)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        _logger.info(self._message_stopping)
+
+        for process in (self._client_process, self._server_process):
+            if process is None:
+                continue
+            # NOTE: Using SIGTERM only because SIGINT showed backtrace output
+            process.send_signal(signal.SIGTERM)
+            process.wait()
+
+        self._tempdir.__exit__(None, None, None)
+        self._tempdir = None
+
+        _logger.info(self._message_stopped)
 
 
 class XvfbX11Context(_SimpleX11Context):
@@ -192,6 +327,8 @@ def create_x11_context(mode: X11Mode, display_number: int, width: int, height: i
         return XephyrX11Context(**init_args)
     elif mode == X11Mode.XNEST:
         return XnestX11Context(**init_args)
+    elif mode == X11Mode.XPRA:
+        return XpraContext(**init_args)
     elif mode == X11Mode.XVFB:
         return XvfbX11Context(**init_args)
 
