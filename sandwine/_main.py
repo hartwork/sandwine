@@ -91,7 +91,7 @@ def parse_command_line(args):
                           dest='x11',
                           action='store_const',
                           const=X11Mode.AUTO,
-                          help='enable nested X11 using X2Go nxagent or Xephry or Xnest'
+                          help='enable nested X11 using X2Go nxagent or Xephyr or Xnest'
                           ' but not Xvfb and not Xpra'
                           ' (default: X11 disabled)')
     x11_args.add_argument('--nxagent',
@@ -103,7 +103,7 @@ def parse_command_line(args):
                           dest='x11',
                           action='store_const',
                           const=X11Mode.XEPHYR,
-                          help='enable nested X11 using Xephry (default: X11 disabled)')
+                          help='enable nested X11 using Xephyr (default: X11 disabled)')
     x11_args.add_argument('--xnest',
                           dest='x11',
                           action='store_const',
@@ -139,7 +139,7 @@ def parse_command_line(args):
     mount = parser.add_argument_group('mount arguments')
     mount.add_argument('--dotwine',
                        metavar='PATH:{ro,rw}',
-                       help='use PATH for ~/.wine/ (default: use tmpfs, empty and non-persistant)')
+                       help='use PATH for ~/.wine/ (default: use tmpfs, empty and non-persistent)')
     mount.add_argument('--pass',
                        dest='extra_binds',
                        default=[],
@@ -399,7 +399,7 @@ def create_bwrap_argv(config):
 
     argv.add('--')
 
-    # Wrap with wineserver (for clean shutdown, it defaults to 3 seconds timout)
+    # Wrap with wineserver (for clean shutdown, it defaults to 3 seconds timeout)
     if config.with_wine:
         argv.add('sh', '-c', 'wineserver -p0 && "$0" "$@" ; ret=$? ; wineserver -k ; exit ${ret}')
 

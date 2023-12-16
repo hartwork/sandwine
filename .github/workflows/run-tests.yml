@@ -116,7 +116,7 @@ jobs:
         (
           set +e
           sandwine --xvfb --no-wine -- zenity --timeout 1 --info hello
-          [[ $? == 5 ]]  # i.e. timout exceeded
+          [[ $? == 5 ]]  # i.e. timeout exceeded
         )
 
         # Retry
