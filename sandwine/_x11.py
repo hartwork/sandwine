@@ -30,6 +30,11 @@ from enum import Enum
 _logger = logging.getLogger(__name__)
 
 
+def _wait_until_file_present(filename):
+    while not os.path.exists(filename):
+        time.sleep(0.5)
+
+
 class X11Mode(Enum):
     AUTO = 'auto'
     HOST = 'host'
@@ -54,8 +59,7 @@ class X11Display:
 
     def wait_until_available(self):
         x11_unix_socket = self.get_unix_socket()
-        while not os.path.exists(x11_unix_socket):
-            time.sleep(0.5)
+        _wait_until_file_present(x11_unix_socket)
 
     @staticmethod
     def find_unused() -> int:
