@@ -199,6 +199,15 @@ class XpraContext(_X11Context):
                   file=f)
             os.fchmod(f.fileno(), 0o755)  # i.e. make executable
 
+    def _wait_for_connectable_xpra_server(self, unix_socket_path: str) -> None:
+        while True:
+            ret = subprocess.call([self._command, 'id', unix_socket_path],
+                                  stdout=subprocess.DEVNULL,
+                                  stderr=subprocess.DEVNULL)
+            if ret == 0:
+                return
+            time.sleep(0.5)
+
     def __enter__(self):
         _logger.info(self._message_starting)
 
@@ -260,6 +269,7 @@ class XpraContext(_X11Context):
         try:
             self._server_process = subprocess.Popen(server_argv)
             _wait_until_file_present(unix_socket_path)
+            self._wait_for_connectable_xpra_server(unix_socket_path)
             self._client_process = subprocess.Popen(client_argv, env=client_env)
         except FileNotFoundError:
             _logger.error(f'Command {self._command!r} is not available, aborting.')
