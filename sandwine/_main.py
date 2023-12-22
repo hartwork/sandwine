@@ -33,7 +33,6 @@ from typing import Optional
 
 import coloredlogs
 
-from sandwine._pty import pty_spawn_argv
 from sandwine._x11 import X11Display, X11Mode, create_x11_context, detect_and_require_nested_x11
 
 _logger = logging.getLogger(__name__)
@@ -411,12 +410,24 @@ def create_bwrap_argv(config):
     if config.second_try:
         argv.add('sh', '-c', '"$0" "$@" || exec "$0" "$@"')
 
-    # Add Wine
+    # Add Wine and PTY
     if config.argv_0 is not None:
+        # Add Wine
+        inner_argv = []
         if config.with_wine:
-            argv.add('wine', config.argv_0, *config.argv_1_plus)
+            inner_argv.append('wine')
+        inner_argv.append(config.argv_0)
+        inner_argv.extend(config.argv_1_plus)
+
+        # Add PTY
+        if config.with_pty:
+            # NOTE: This implementation is known to not support Ctrl+Z (SIGTSTP).
+            #       Implementing something with Ctrl+Z support is complex and planned for later.
+            #       The current approach is inspired by ptysolate by Jakub Wilk:
+            #       https://github.com/jwilk/ptysolate
+            argv.add('script', '-e', '-q', '-c', f'exec {shlex.join(inner_argv)}', '/dev/null')
         else:
-            argv.add(config.argv_0, *config.argv_1_plus)
+            argv.add(*inner_argv)
     else:
         argv.add('true')
 
@@ -429,13 +440,6 @@ def require_recent_bubblewrap():
         _logger.error('sandwine requires bubblewrap >=0.8.0'
                       ', aborting.')
         sys.exit(1)
-
-
-def spawn_argv(argv: list[str], with_pty: bool) -> int:
-    if not with_pty:
-        return subprocess.call(argv)
-
-    return pty_spawn_argv(argv)
 
 
 def main():
@@ -472,7 +476,7 @@ def main():
 
         with x11context:
             try:
-                exit_code = spawn_argv(argv, with_pty=config.with_pty)
+                exit_code = subprocess.call(argv)
             except FileNotFoundError:
                 _logger.error(f'Command {argv[0]!r} is not available, aborting.')
                 exit_code = 127
