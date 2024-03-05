@@ -50,6 +50,7 @@ class MountMode(Enum):
     BIND_DEV = auto()
     TMPFS = auto()
     PROC = auto()
+    SYMLINK = auto()
 
 
 def parse_command_line(args):
@@ -237,9 +238,11 @@ def create_bwrap_argv(config):
         MountTask(MountMode.DEVTMPFS, '/dev'),
         MountTask(MountMode.BIND_DEV, '/dev/dri'),
         MountTask(MountMode.BIND_RO, '/etc'),
-        MountTask(MountMode.BIND_RO, '/lib'),
-        MountTask(MountMode.BIND_RO, '/lib32', required=False),
-        MountTask(MountMode.BIND_RO, '/lib64'),
+        MountTask(MountMode.BIND_RO, '/usr/lib'),
+        MountTask(MountMode.BIND_RO, '/usr/lib32', required=False),
+        MountTask(MountMode.BIND_RO, '/usr/lib64'),
+        MountTask(MountMode.SYMLINK, '/lib', source='/usr/lib'),
+        MountTask(MountMode.SYMLINK, '/lib64', source='/usr/lib64'),
         MountTask(MountMode.PROC, '/proc'),
         MountTask(MountMode.BIND_RO, '/sys'),
         MountTask(MountMode.TMPFS, '/tmp'),
@@ -341,7 +344,7 @@ def create_bwrap_argv(config):
             argv.add('--dev', mount_task.target)
         elif mount_task.mode == MountMode.PROC:
             argv.add('--proc', mount_task.target)
-        elif mount_task.mode in (MountMode.BIND_RO, MountMode.BIND_RW, MountMode.BIND_DEV):
+        elif mount_task.mode in (MountMode.BIND_RO, MountMode.BIND_RW, MountMode.BIND_DEV, MountMode.SYMLINK):
             if mount_task.source is None:
                 mount_task.source = mount_task.target
 
@@ -365,6 +368,8 @@ def create_bwrap_argv(config):
                 argv.add('--bind', mount_task.source, mount_task.target)
             elif mount_task.mode == MountMode.BIND_DEV:
                 argv.add('--dev-bind', mount_task.source, mount_task.target)
+            elif mount_task.mode == MountMode.SYMLINK:
+                argv.add('--symlink', mount_task.source, mount_task.target)
             else:
                 assert False, f'Mode {mount_task.mode} not supported'
         else:
