@@ -24,6 +24,7 @@ on:
     - cron: '0 2 * * 5'  # Every Friday at 2am
   workflow_dispatch:
 
+# Drop permissions to minimum, for security
 permissions:
   contents: read
 
