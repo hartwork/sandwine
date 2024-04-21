@@ -20,6 +20,7 @@ name: Run pre-commit
 on:
 - pull_request
 - push
+- workflow_dispatch
 
 jobs:
   pre-commit:

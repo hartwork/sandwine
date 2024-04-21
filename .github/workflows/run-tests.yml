@@ -20,6 +20,7 @@ name: Run the test suite
 on:
 - pull_request
 - push
+- workflow_dispatch
 
 jobs:
   run-tests:
