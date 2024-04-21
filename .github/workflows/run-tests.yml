@@ -17,6 +17,10 @@
 
 name: Run the test suite
 
+# Drop permissions to minimum, for security
+permissions:
+  contents: read
+
 on:
 - pull_request
 - push
