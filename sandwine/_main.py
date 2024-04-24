@@ -135,6 +135,12 @@ def parse_command_line(args):
                        action='store_true',
                        help='enable sound using PulseAudio (default: sound disabled)')
 
+    input_args = parser.add_argument_group('input arguments')
+    input_args.add_argument('--raw-input',
+                       dest='raw_input',
+                       action='store_true',
+                       help='enable access to /dev/input , to have controller in wine (CAREFUL!) (default: raw-input disabled)')
+
     mount = parser.add_argument_group('mount arguments')
     mount.add_argument('--dotwine',
                        metavar='PATH:{ro,rw}',
@@ -274,6 +280,12 @@ def create_bwrap_argv(config):
         pulseaudio_socket = f'/run/user/{os.getuid()}/pulse/native'
         env_tasks['PULSE_SERVER'] = f'unix:{pulseaudio_socket}'
         mount_tasks += [MountTask(MountMode.BIND_RW, pulseaudio_socket)]
+
+    # input
+    if config.raw_input:
+        # default udev based hotplug not working in conatiner
+        env_tasks['SDL_JOYSTICK_DISABLE_UDEV'] = "1"
+        mount_tasks += [MountTask(MountMode.BIND_DEV, '/dev/input')]
 
     # X11
     if X11Mode(config.x11) != X11Mode.NONE:
