@@ -170,6 +170,10 @@ def parse_command_line(args):
                          help='on non-zero exit code run PROGRAM a second time'
                          '; helps to workaround weird graphics-related crashes'
                          ' (default: run command once)')
+    general.add_argument('--keep-env',
+                         dest='keep_env',
+                         action='store_true',
+                         help='keep host env (default: keep-env disabled)')
 
     return parser.parse_args(args)
 
@@ -388,7 +392,8 @@ def create_bwrap_argv(config):
     env_tasks['PATH'] = os.pathsep.join(available_paths)
 
     # Create environment (meaning environment variables)
-    argv.add('--clearenv')
+    if not config.keep_env:
+        argv.add('--clearenv')
     for env_var, env_value in sorted(env_tasks.items(), key=itemgetter(0)):
         if env_value is None:
             env_value = os.environ.get(env_var)
