@@ -130,6 +130,11 @@ def parse_command_line(args):
                             action='store_true',
                             help='enable networking (default: networking disabled)')
 
+    wayland = parser.add_argument_group('wayland arguments')
+    wayland.add_argument('--wayland',
+                       action='store_true',
+                       help='enable use of host wayland (default: wayland disabled)')
+
     sound = parser.add_argument_group('sound arguments')
     sound.add_argument('--pulseaudio',
                        action='store_true',
@@ -273,13 +278,20 @@ def create_bwrap_argv(config):
     if config.pulseaudio:
         pulseaudio_socket = f'/run/user/{os.getuid()}/pulse/native'
         env_tasks['PULSE_SERVER'] = f'unix:{pulseaudio_socket}'
-        mount_tasks += [MountTask(MountMode.BIND_RW, pulseaudio_socket)]
+        mount_tasks += [MountTask(MountMode.BIND_RO, pulseaudio_socket)]
 
     # X11
     if X11Mode(config.x11) != X11Mode.NONE:
         x11_unix_socket = X11Display(config.x11_display_number).get_unix_socket()
         mount_tasks += [MountTask(MountMode.BIND_RW, x11_unix_socket)]
         env_tasks['DISPLAY'] = f':{config.x11_display_number}'
+
+    # wayland
+    if config.wayland:
+        XDG_RUNTIME_DIR = os.environ['XDG_RUNTIME_DIR']
+        WAYLAND_DISPLAY = os.environ['WAYLAND_DISPLAY']
+        env_tasks['XDG_RUNTIME_DIR'] = XDG_RUNTIME_DIR
+        mount_tasks += [MountTask(MountMode.BIND_RO, f'{XDG_RUNTIME_DIR}/{WAYLAND_DISPLAY}')]
 
     # Wine
     run_winecfg = (X11Mode(config.x11) != X11Mode.NONE
