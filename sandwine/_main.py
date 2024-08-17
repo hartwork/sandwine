@@ -44,12 +44,12 @@ class AccessMode(Enum):
 
 
 class MountMode(Enum):
-    DEVTMPFS = auto()
+    BIND_DEV = auto()
     BIND_RO = auto()
     BIND_RW = auto()
-    BIND_DEV = auto()
-    TMPFS = auto()
+    DEVTMPFS = auto()
     PROC = auto()
+    TMPFS = auto()
 
 
 def parse_command_line(args):
