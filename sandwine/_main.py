@@ -226,6 +226,16 @@ class MountTask:
     required: bool = True
 
 
+def infer_mount_task(mode: MountMode, abs_target_path: str, required: bool = True) -> MountTask:
+    if os.path.islink(abs_target_path):
+        mode = MountMode.SYMLINK
+        source = os.readlink(abs_target_path)
+    else:
+        source = None
+
+    return MountTask(mode=mode, target=abs_target_path, source=source, required=required)
+
+
 def random_hostname():
     return ''.join(hex(random.randint(0, 15))[2:] for _ in range(12))
 
@@ -238,9 +248,9 @@ def create_bwrap_argv(config):
         MountTask(MountMode.DEVTMPFS, '/dev'),
         MountTask(MountMode.BIND_DEV, '/dev/dri'),
         MountTask(MountMode.BIND_RO, '/etc'),
-        MountTask(MountMode.BIND_RO, '/lib'),
-        MountTask(MountMode.BIND_RO, '/lib32', required=False),
-        MountTask(MountMode.BIND_RO, '/lib64'),
+        infer_mount_task(MountMode.BIND_RO, '/lib'),
+        infer_mount_task(MountMode.BIND_RO, '/lib32', required=False),
+        infer_mount_task(MountMode.BIND_RO, '/lib64'),
         MountTask(MountMode.PROC, '/proc'),
         MountTask(MountMode.BIND_RO, '/sys'),
         MountTask(MountMode.TMPFS, '/tmp'),
