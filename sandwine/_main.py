@@ -44,12 +44,13 @@ class AccessMode(Enum):
 
 
 class MountMode(Enum):
-    DEVTMPFS = auto()
+    BIND_DEV = auto()
     BIND_RO = auto()
     BIND_RW = auto()
-    BIND_DEV = auto()
-    TMPFS = auto()
+    DEVTMPFS = auto()
     PROC = auto()
+    SYMLINK = auto()
+    TMPFS = auto()
 
 
 def parse_command_line(args):
@@ -225,6 +226,16 @@ class MountTask:
     required: bool = True
 
 
+def infer_mount_task(mode: MountMode, abs_target_path: str, required: bool = True) -> MountTask:
+    if os.path.islink(abs_target_path):
+        mode = MountMode.SYMLINK
+        source = os.readlink(abs_target_path)
+    else:
+        source = None
+
+    return MountTask(mode=mode, target=abs_target_path, source=source, required=required)
+
+
 def random_hostname():
     return ''.join(hex(random.randint(0, 15))[2:] for _ in range(12))
 
@@ -237,9 +248,9 @@ def create_bwrap_argv(config):
         MountTask(MountMode.DEVTMPFS, '/dev'),
         MountTask(MountMode.BIND_DEV, '/dev/dri'),
         MountTask(MountMode.BIND_RO, '/etc'),
-        MountTask(MountMode.BIND_RO, '/lib'),
-        MountTask(MountMode.BIND_RO, '/lib32', required=False),
-        MountTask(MountMode.BIND_RO, '/lib64'),
+        infer_mount_task(MountMode.BIND_RO, '/lib'),
+        infer_mount_task(MountMode.BIND_RO, '/lib32', required=False),
+        infer_mount_task(MountMode.BIND_RO, '/lib64'),
         MountTask(MountMode.PROC, '/proc'),
         MountTask(MountMode.BIND_RO, '/sys'),
         MountTask(MountMode.TMPFS, '/tmp'),
@@ -341,7 +352,8 @@ def create_bwrap_argv(config):
             argv.add('--dev', mount_task.target)
         elif mount_task.mode == MountMode.PROC:
             argv.add('--proc', mount_task.target)
-        elif mount_task.mode in (MountMode.BIND_RO, MountMode.BIND_RW, MountMode.BIND_DEV):
+        elif mount_task.mode in (MountMode.BIND_RO, MountMode.BIND_RW, MountMode.BIND_DEV,
+                                 MountMode.SYMLINK):
             if mount_task.source is None:
                 mount_task.source = mount_task.target
 
@@ -349,7 +361,8 @@ def create_bwrap_argv(config):
             keep_missing_source = X11Mode(
                 config.x11) != X11Mode.NONE and mount_task.target == x11_unix_socket
 
-            if not os.path.exists(mount_task.source) and not keep_missing_source:
+            if (mount_task.mode != MountMode.SYMLINK and not os.path.exists(mount_task.source)
+                    and not keep_missing_source):
                 if mount_task.required:
                     _logger.error(
                         f'Path {mount_task.source!r} does not exist on the host, aborting.')
@@ -365,6 +378,8 @@ def create_bwrap_argv(config):
                 argv.add('--bind', mount_task.source, mount_task.target)
             elif mount_task.mode == MountMode.BIND_DEV:
                 argv.add('--dev-bind', mount_task.source, mount_task.target)
+            elif mount_task.mode == MountMode.SYMLINK:
+                argv.add('--symlink', mount_task.source, mount_task.target)
             else:
                 assert False, f'Mode {mount_task.mode} not supported'
         else:
