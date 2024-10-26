@@ -376,9 +376,12 @@ def create_bwrap_argv(config):
         real_argv_0 = os.path.abspath(config.argv_0)
         mount_tasks += [
             MountTask(MountMode.BIND_RO, real_argv_0, required=False),
-            MountTask(MountMode.BIND_RO, real_argv_0 + ".exe", required=False),
-            MountTask(MountMode.BIND_RO, real_argv_0 + ".EXE", required=False),
         ]
+        if config.with_wine:
+            mount_tasks += [
+                MountTask(MountMode.BIND_RO, real_argv_0 + ".exe", required=False),
+                MountTask(MountMode.BIND_RO, real_argv_0 + ".EXE", required=False),
+            ]
 
     # Linux Namespaces
     argv.add(*unshare_args)
