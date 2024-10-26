@@ -53,20 +53,27 @@ class MountMode(Enum):
     TMPFS = auto()
 
 
-def parse_command_line(args):
+def parse_command_line(args: list[str], with_wine: bool):
     distribution = metadata("sandwine")
 
-    usage = dedent("""\
-        usage: sandwine [OPTIONS] [--] PROGRAM [ARG ..]
-           or: sandwine [OPTIONS] --configure
-           or: sandwine --help
-           or: sandwine --version
+    prog = "sandwine" if with_wine else "sand"
+    description = (
+        distribution["Summary"]
+        if with_wine
+        else "Command-line tool to run commands with bwrap/bubblewrap isolation"
+    )
+
+    usage = dedent(f"""\
+        usage: {prog} [OPTIONS] [--] PROGRAM [ARG ..]
+           or: {prog} [OPTIONS] --configure
+           or: {prog} --help
+           or: {prog} --version
     """)[len("usage: ") :]
 
     parser = ArgumentParser(
-        prog="sandwine",
+        prog=prog,
         usage=usage,
-        description=distribution["Summary"],
+        description=description,
         formatter_class=RawTextHelpFormatter,
         epilog=dedent("""\
         Software libre licensed under GPL v3 or later.
@@ -151,11 +158,14 @@ def parse_command_line(args):
     )
 
     mount = parser.add_argument_group("mount arguments")
-    mount.add_argument(
-        "--dotwine",
-        metavar="PATH:{ro,rw}",
-        help="use PATH for ~/.wine/ (default: use tmpfs, empty and non-persistent)",
-    )
+    if with_wine:
+        mount.add_argument(
+            "--dotwine",
+            metavar="PATH:{ro,rw}",
+            help="use PATH for ~/.wine/ (default: use tmpfs, empty and non-persistent)",
+        )
+    else:
+        mount.set_defaults(dotwine=None)
     mount.add_argument(
         "--pass",
         dest="extra_binds",
@@ -166,11 +176,15 @@ def parse_command_line(args):
     )
 
     general = parser.add_argument_group("general operation arguments")
-    general.add_argument(
-        "--configure",
-        action="store_true",
-        help="enforce running winecfg before start of PROGRAM" " (default: run winecfg as needed)",
-    )
+    if with_wine:
+        general.add_argument(
+            "--configure",
+            action="store_true",
+            help="enforce running winecfg before start of PROGRAM"
+            " (default: run winecfg as needed)",
+        )
+    else:
+        mount.set_defaults(configure=None)
     general.add_argument(
         "--no-pty",
         dest="with_pty",
@@ -180,13 +194,17 @@ def parse_command_line(args):
         ", stop protecting against TIOCSTI/TIOCLINUX hijacking (CAREFUL!)"
         " (default: create a pseudo-terminal)",
     )
-    general.add_argument(
-        "--no-wine",
-        dest="with_wine",
-        default=True,
-        action="store_false",
-        help="run PROGRAM without use of Wine" ' (default: run command "wine PROGRAM [ARG ..]")',
-    )
+    if with_wine:
+        general.add_argument(
+            "--no-wine",
+            dest="with_wine",
+            default=True,
+            action="store_false",
+            help="run PROGRAM without use of Wine"
+            ' (default: run command "wine PROGRAM [ARG ..]")',
+        )
+    else:
+        mount.set_defaults(with_wine=False)
     general.add_argument(
         "--retry",
         dest="second_try",
@@ -494,10 +512,10 @@ def require_recent_bubblewrap():
         sys.exit(1)
 
 
-def main():
+def _inner_main(with_wine: bool):
     exit_code = 0
     try:
-        config = parse_command_line(sys.argv[1:])
+        config = parse_command_line(sys.argv[1:], with_wine=with_wine)
 
         coloredlogs.install(level=logging.DEBUG)
 
@@ -537,3 +555,11 @@ def main():
         exit_code = 128 + signal.SIGINT
 
     sys.exit(exit_code)
+
+
+def main_sand():
+    _inner_main(with_wine=False)
+
+
+def main_sandwine():
+    _inner_main(with_wine=True)
