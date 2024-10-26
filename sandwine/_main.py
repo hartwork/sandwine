@@ -355,7 +355,7 @@ def create_bwrap_argv(config):
 
         del dotwine_source_path
         del dotwine_access
-    else:
+    elif config.with_wine:
         mount_tasks += [MountTask(MountMode.TMPFS, dotwine_target_path)]
     del dotwine_target_path
 
