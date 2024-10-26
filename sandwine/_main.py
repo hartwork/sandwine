@@ -76,11 +76,11 @@ def parse_command_line(args: list[str], with_wine: bool):
         description=description,
         formatter_class=RawTextHelpFormatter,
         epilog=dedent("""\
-        Software libre licensed under GPL v3 or later.
-        Brought to you by Sebastian Pipping <sebastian@pipping.org>.
+            Software libre licensed under GPL v3 or later.
+            Brought to you by Sebastian Pipping <sebastian@pipping.org>.
 
-        Please report bugs at https://github.com/hartwork/sandwine — thank you!
-    """),
+            Please report bugs at https://github.com/hartwork/sandwine — thank you!
+        """),
     )
 
     parser.add_argument("--version", action="version", version=distribution["Version"])
