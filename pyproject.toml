@@ -56,4 +56,5 @@ classifiers = [
 "Bug Tracker" = "https://github.com/hartwork/sandwine/issues"
 
 [project.scripts]
-sandwine = "sandwine._main:main"
+sand = "sandwine._main:main_sand"
+sandwine = "sandwine._main:main_sandwine"

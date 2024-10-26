@@ -97,6 +97,9 @@ jobs:
         sandwine --help
         sandwine --version
 
+        sand --help
+        sand --version
+
         # Defaults
         sandwine -- CMD /C DIR 'Z:\'
 
