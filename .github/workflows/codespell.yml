@@ -33,5 +33,5 @@ jobs:
     name: Enforce codespell-clean spelling
     runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
     - uses: codespell-project/actions-codespell@94259cd8be02ad2903ba34a22d9c13de21a74461  # v2.0
