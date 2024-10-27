@@ -19,6 +19,7 @@ import logging
 import os
 import random
 import shlex
+import shutil
 import signal
 import subprocess
 import sys
@@ -358,6 +359,19 @@ def create_bwrap_argv(config):
     elif config.with_wine:
         mount_tasks += [MountTask(MountMode.TMPFS, dotwine_target_path)]
     del dotwine_target_path
+
+    # More Wine: Mount the place that upstream's Debian packages installed to
+    #            if(!) that's the Wine we'll be running
+    if config.with_wine and (wine_bin_abs_path := shutil.which("wine")) is not None:
+        resolved_wine_bin_abs_path = os.path.realpath(wine_bin_abs_path)
+        for wine_opt_prefix in (
+            "/opt/wine-devel/",
+            "/opt/wine-stable/",
+            "/opt/wine-staging/",
+        ):
+            if resolved_wine_bin_abs_path.startswith(wine_opt_prefix):
+                mount_tasks += [MountTask(MountMode.BIND_RO, wine_opt_prefix.rstrip("/"))]
+                break
 
     # Extra binds
     for bind in config.extra_binds:
