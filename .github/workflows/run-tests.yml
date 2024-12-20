@@ -45,6 +45,7 @@ jobs:
         sudo dpkg --add-architecture i386
         sudo apt-get update
         sudo apt-get install --no-install-recommends --yes -V \
+            apparmor-profiles \
             libcap-dev \
             python3-pip \
             wget \
@@ -53,6 +54,15 @@ jobs:
         sudo apt-get install --no-install-recommends --yes -V \
             wine32:i386
         pip3 install --ignore-installed build pip setuptools wheel
+
+    - name: Allow creation of user namespaces to bubblewrap
+      run: |
+        # .. so that we don't get error:
+        # bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted
+        # Idea from https://github.com/ocaml/opam/issues/5968#issuecomment-2151748424 .
+        set -x
+        sudo ln -s /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /etc/apparmor.d/
+        sudo systemctl reload apparmor
 
     - name: Build sandwine
       run: |
