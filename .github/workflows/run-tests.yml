@@ -34,7 +34,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.9, 3.13]  # no particular need for in-between versions
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
     - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5.3.0
@@ -45,6 +45,8 @@ jobs:
         sudo dpkg --add-architecture i386
         sudo apt-get update
         sudo apt-get install --no-install-recommends --yes -V \
+            apparmor-profiles \
+            bubblewrap \
             libcap-dev \
             python3-pip \
             wget \
@@ -54,6 +56,15 @@ jobs:
             wine32:i386
         pip3 install --ignore-installed build pip setuptools wheel
 
+    - name: Allow creation of user namespaces to bubblewrap
+      run: |
+        # .. so that we don't get error:
+        # bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted
+        # Idea from https://github.com/ocaml/opam/issues/5968#issuecomment-2151748424 .
+        set -x
+        sudo ln -s /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /etc/apparmor.d/
+        sudo systemctl reload apparmor
+
     - name: Build sandwine
       run: |
         set -x
@@ -62,24 +73,6 @@ jobs:
         ls -l dist/
         tar vtf dist/sandwine-*.tar.gz
         unzip -l dist/sandwine-*.whl
-
-    - name: Install recent-enough Bubblewrap
-      run: |
-        bubble_wrap_version=0.8.0
-        bubble_wrap_sha256sum=957ad1149db9033db88e988b12bcebe349a445e1efc8a9b59ad2939a113d333a
-
-        set -x -u
-
-        wget https://github.com/containers/bubblewrap/releases/download/v${bubble_wrap_version}/bubblewrap-${bubble_wrap_version}.tar.xz
-        sha256sum -c <(echo "${bubble_wrap_sha256sum} *bubblewrap-${bubble_wrap_version}.tar.xz")
-
-        tar xf bubblewrap-${bubble_wrap_version}.tar.xz
-        cd bubblewrap-${bubble_wrap_version}
-        ./configure
-        make -j$(nproc)
-        sudo make install
-
-        [[ "$(bwrap --version)" = "bubblewrap ${bubble_wrap_version}" ]]
 
     - name: Install sandwine
       run: |
