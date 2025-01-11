@@ -129,7 +129,7 @@ def parse_command_line(args: list[str], with_wine: bool):
         dest="x11",
         action="store_const",
         const=X11Mode.XPRA,
-        help="enable nested X11 using Xpra (EXPERIMENTAL, CAREFUL!)" " (default: X11 disabled)",
+        help="enable nested X11 using Xpra (EXPERIMENTAL, CAREFUL!) (default: X11 disabled)",
     )
     x11_args.add_argument(
         "--xvfb",
@@ -181,8 +181,7 @@ def parse_command_line(args: list[str], with_wine: bool):
         general.add_argument(
             "--configure",
             action="store_true",
-            help="enforce running winecfg before start of PROGRAM"
-            " (default: run winecfg as needed)",
+            help="enforce running winecfg before start of PROGRAM (default: run winecfg as needed)",
         )
     else:
         mount.set_defaults(configure=None)
@@ -201,8 +200,7 @@ def parse_command_line(args: list[str], with_wine: bool):
             dest="with_wine",
             default=True,
             action="store_false",
-            help="run PROGRAM without use of Wine"
-            ' (default: run command "wine PROGRAM [ARG ..]")',
+            help='run PROGRAM without use of Wine (default: run command "wine PROGRAM [ARG ..]")',
         )
     else:
         mount.set_defaults(with_wine=False)
@@ -525,7 +523,7 @@ def create_bwrap_argv(config):
 def require_recent_bubblewrap():
     argv = ["bwrap", "--disable-userns", "--help"]
     if subprocess.call(argv, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) != 0:
-        _logger.error("sandwine requires bubblewrap >=0.8.0" ", aborting.")
+        _logger.error("sandwine requires bubblewrap >=0.8.0, aborting.")
         sys.exit(1)
 
 
