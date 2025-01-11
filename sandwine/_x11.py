@@ -339,7 +339,7 @@ def detect_and_require_nested_x11() -> X11Mode:
             return mode
 
     commands = [clazz._command for clazz, _ in tests]
-    _logger.error(f'Neither {" nor ".join(commands)} is available, please install, aborting.')
+    _logger.error(f"Neither {' nor '.join(commands)} is available, please install, aborting.")
     sys.exit(127)
 
 
