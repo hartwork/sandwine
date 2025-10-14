@@ -30,7 +30,6 @@ from enum import Enum, auto
 from importlib.metadata import metadata
 from operator import attrgetter, itemgetter
 from textwrap import dedent
-from typing import Optional
 
 import coloredlogs
 
@@ -262,7 +261,7 @@ def parse_path_colon_access(candidate):
 class MountTask:
     mode: MountMode
     target: str
-    source: Optional[str] = None
+    source: str | None = None
     required: bool = True
 
 
