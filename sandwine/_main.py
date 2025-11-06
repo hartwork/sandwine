@@ -91,6 +91,13 @@ def parse_command_line(args: list[str], with_wine: bool):
         "argv_1_plus", metavar="ARG", nargs="*", help="arguments to pass to PROGRAM"
     )
 
+    wayland_args = parser.add_argument_group("wayland arguments")
+    progra.add_arguments(
+        "--wayland"
+        action="store_const",
+        help="enable use of host wayland (default: wayland disabled)",
+    )
+
     x11_args = parser.add_argument_group("X11 arguments")
     x11_args.set_defaults(x11=X11Mode.NONE)
     x11_args.add_argument(
@@ -330,6 +337,13 @@ def create_bwrap_argv(config):
         x11_unix_socket = X11Display(config.x11_display_number).get_unix_socket()
         mount_tasks += [MountTask(MountMode.BIND_RW, x11_unix_socket)]
         env_tasks["DISPLAY"] = f":{config.x11_display_number}"
+
+    # wayland
+    if config.wayland:
+        XDG_RUNTIME_DIR = os.environ["XDG_RUNTIME_DIR"]
+        WAYLAND_DISPLAY = os.environ["WAYLAND_DISPLAY"]
+        env_tasks["XDG_RUNTIME_DIR"] = XDG_RUNTIME_DIR
+        mount_tasks += [MountTask(MountMode.BIND_RO, f"{XDG_RUNTIME_DIR}/{WAYLAND_DISPLAY}")]
 
     # Wine
     run_winecfg = X11Mode(config.x11) != X11Mode.NONE and (
