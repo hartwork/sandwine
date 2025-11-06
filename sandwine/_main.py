@@ -163,6 +163,11 @@ def parse_command_line(args: list[str], with_wine: bool):
         action="store_true",
         help="enable sound using PulseAudio (default: sound disabled)",
     )
+    sound.add_argument(
+        "--pipewire",
+        action="store_true",
+        help="enable sound using PipeWire (default: sound disabled)",
+    )
 
     mount = parser.add_argument_group("mount arguments")
     if with_wine:
@@ -331,6 +336,11 @@ def create_bwrap_argv(config):
         pulseaudio_socket = f"/run/user/{os.getuid()}/pulse/native"
         env_tasks["PULSE_SERVER"] = f"unix:{pulseaudio_socket}"
         mount_tasks += [MountTask(MountMode.BIND_RW, pulseaudio_socket)]
+
+    if config.pipewire:
+        XDG_RUNTIME_DIR = os.environ["XDG_RUNTIME_DIR"]
+        env_tasks["XDG_RUNTIME_DIR"] = XDG_RUNTIME_DIR
+        mount_tasks += [MountTask(MountMode.BIND_RO, f"{XDG_RUNTIME_DIR}/pipewire-0")]
 
     # X11
     if X11Mode(config.x11) != X11Mode.NONE:
