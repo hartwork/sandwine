@@ -99,7 +99,8 @@ To achieve that, by default the launched application:
 - Does not have access to the internet (unless you pass `--network`).
 - Does not have access to your local X11 server
   (unless you enable some form of X11 integration, ideally nested X11).
-- Does not have access to your sound card (unless you pass `--pulseaudio`).
+- Does not have access to your local Wayland display server (unless you pass `--wayland`)
+- Does not have access to your sound card (unless you pass `--pulseaudio` and/or `--pipewire`).
 
 So what is shared with the application by default then?
 
@@ -146,7 +147,9 @@ So what is shared with the application by default then?
   - Xnest
   - Xpra (experimental, careful!)
   - Xvfb (invisible)
+- Support for Wayland
 - Support for PulseAudio
+- Support for PipeWire
 - Support for `/etc/resolv.conf` provided by:
   - NetworkManager
   - systemd-resolved
