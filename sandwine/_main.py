@@ -323,12 +323,12 @@ def create_bwrap_argv(config):
     if config.pulseaudio:
         pulseaudio_socket = f"/run/user/{os.getuid()}/pulse/native"
         env_tasks["PULSE_SERVER"] = f"unix:{pulseaudio_socket}"
-        mount_tasks += [MountTask(MountMode.BIND_RW, pulseaudio_socket)]
+        mount_tasks += [MountTask(MountMode.BIND_RO, pulseaudio_socket)]
 
     # X11
     if X11Mode(config.x11) != X11Mode.NONE:
         x11_unix_socket = X11Display(config.x11_display_number).get_unix_socket()
-        mount_tasks += [MountTask(MountMode.BIND_RW, x11_unix_socket)]
+        mount_tasks += [MountTask(MountMode.BIND_RO, x11_unix_socket)]
         env_tasks["DISPLAY"] = f":{config.x11_display_number}"
 
     # Wine
