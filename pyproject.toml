@@ -21,7 +21,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sandwine"
-version = "4.3.0"
+version = "5.0.0"
 license = {text = "GPLv3+"}
 description = "Command-line tool to run Windows apps with Wine and bwrap/bubblewrap isolation"
 readme = {file = "README.md", content-type = "text/markdown"}
