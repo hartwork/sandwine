@@ -91,6 +91,13 @@ def parse_command_line(args: list[str], with_wine: bool):
         "argv_1_plus", metavar="ARG", nargs="*", help="arguments to pass to PROGRAM"
     )
 
+    wayland_args = parser.add_argument_group("Wayland arguments")
+    wayland_args.add_argument(
+        "--wayland",
+        action="store_true",
+        help="enable use of Wayland (default: Wayland disabled)",
+    )
+
     x11_args = parser.add_argument_group("X11 arguments")
     x11_args.set_defaults(x11=X11Mode.NONE)
     x11_args.add_argument(
@@ -155,6 +162,11 @@ def parse_command_line(args: list[str], with_wine: bool):
         "--pulseaudio",
         action="store_true",
         help="enable sound using PulseAudio (default: sound disabled)",
+    )
+    sound.add_argument(
+        "--pipewire",
+        action="store_true",
+        help="enable sound using PipeWire (default: sound disabled)",
     )
 
     mount = parser.add_argument_group("mount arguments")
@@ -281,6 +293,7 @@ def random_hostname():
 
 def create_bwrap_argv(config):
     my_home = os.path.expanduser("~")
+    xdg_runtime_dir = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
     mount_tasks = [
         MountTask(MountMode.TMPFS, "/"),
         MountTask(MountMode.BIND_RO, "/bin"),
@@ -325,11 +338,23 @@ def create_bwrap_argv(config):
         env_tasks["PULSE_SERVER"] = f"unix:{pulseaudio_socket}"
         mount_tasks += [MountTask(MountMode.BIND_RW, pulseaudio_socket)]
 
+    if config.pipewire:
+        pipewire_socket = os.path.join(xdg_runtime_dir, "pipewire-0")
+        mount_tasks += [MountTask(MountMode.BIND_RO, pipewire_socket)]
+
     # X11
     if X11Mode(config.x11) != X11Mode.NONE:
         x11_unix_socket = X11Display(config.x11_display_number).get_unix_socket()
         mount_tasks += [MountTask(MountMode.BIND_RW, x11_unix_socket)]
         env_tasks["DISPLAY"] = f":{config.x11_display_number}"
+
+    # Wayland
+    if config.wayland:
+        wayland_display = os.environ.get("WAYLAND_DISPLAY", "wayland-0")
+        wayland_socket = os.path.join(xdg_runtime_dir, wayland_display)
+        env_tasks["WAYLAND_DISPLAY"] = wayland_display
+        env_tasks["XDG_RUNTIME_DIR"] = xdg_runtime_dir
+        mount_tasks += [MountTask(MountMode.BIND_RO, wayland_socket)]
 
     # Wine
     run_winecfg = X11Mode(config.x11) != X11Mode.NONE and (
