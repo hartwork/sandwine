@@ -305,7 +305,7 @@ def create_bwrap_argv(config):
         MountTask(MountMode.TMPFS, "/"),
         MountTask(MountMode.BIND_RO, "/bin"),
         MountTask(MountMode.DEVTMPFS, "/dev"),
-        MountTask(MountMode.BIND_DEV, "/dev/ntsync"),
+        MountTask(MountMode.BIND_DEV, "/dev/ntsync", required=False),
         MountTask(MountMode.BIND_DEV, "/dev/dri"),
         MountTask(MountMode.BIND_RO, "/etc"),
         infer_mount_task(MountMode.BIND_RO, "/lib"),
@@ -366,9 +366,11 @@ def create_bwrap_argv(config):
 
     # GPU
     if config.gpu_nvidia:
-        mount_tasks += [MountTask(MountMode.BIND_DEV, "/dev/nvidia0"),
-                        MountTask(MountMode.BIND_DEV, "/dev/nvidiactl"),
-                        MountTask(MountMode.BIND_DEV, "/dev/nvidia-modeset")]
+        mount_tasks += [
+            MountTask(MountMode.BIND_DEV, "/dev/nvidia0"),
+            MountTask(MountMode.BIND_DEV, "/dev/nvidiactl"),
+            MountTask(MountMode.BIND_DEV, "/dev/nvidia-modeset"),
+        ]
 
     # Wine
     run_winecfg = X11Mode(config.x11) != X11Mode.NONE and (
