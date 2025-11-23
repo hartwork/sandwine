@@ -152,8 +152,8 @@ def parse_command_line(args: list[str], with_wine: bool):
         help="enable use of host X11 (CAREFUL!) (default: X11 disabled)",
     )
 
-    gpu_nvidia = parser.add_argument_group("GPU arguments")
-    gpu_nvidia.add_argument(
+    nvidia_gpu = parser.add_argument_group("GPU arguments")
+    nvidia_gpu.add_argument(
         "--nvidia-gpu",
         action="store_true",
         help="enable Nvidia GPU access (default: Nvidia GPU access disabled)",
@@ -365,7 +365,7 @@ def create_bwrap_argv(config):
         mount_tasks += [MountTask(MountMode.BIND_RO, wayland_socket)]
 
     # GPU
-    if config.gpu_nvidia:
+    if config.nvidia_gpu:
         mount_tasks += [
             MountTask(MountMode.BIND_DEV, "/dev/nvidia0"),
             MountTask(MountMode.BIND_DEV, "/dev/nvidiactl"),
