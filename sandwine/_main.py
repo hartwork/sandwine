@@ -152,6 +152,13 @@ def parse_command_line(args: list[str], with_wine: bool):
         help="enable use of host X11 (CAREFUL!) (default: X11 disabled)",
     )
 
+    nvidia_gpu = parser.add_argument_group("GPU arguments")
+    nvidia_gpu.add_argument(
+        "--nvidia-gpu",
+        action="store_true",
+        help="enable Nvidia GPU access (default: Nvidia GPU access disabled)",
+    )
+
     networking = parser.add_argument_group("networking arguments")
     networking.add_argument(
         "--network", action="store_true", help="enable networking (default: networking disabled)"
@@ -298,6 +305,7 @@ def create_bwrap_argv(config):
         MountTask(MountMode.TMPFS, "/"),
         MountTask(MountMode.BIND_RO, "/bin"),
         MountTask(MountMode.DEVTMPFS, "/dev"),
+        MountTask(MountMode.BIND_DEV, "/dev/ntsync", required=False),
         MountTask(MountMode.BIND_DEV, "/dev/dri"),
         MountTask(MountMode.BIND_RO, "/etc"),
         infer_mount_task(MountMode.BIND_RO, "/lib"),
@@ -355,6 +363,14 @@ def create_bwrap_argv(config):
         env_tasks["WAYLAND_DISPLAY"] = wayland_display
         env_tasks["XDG_RUNTIME_DIR"] = xdg_runtime_dir
         mount_tasks += [MountTask(MountMode.BIND_RO, wayland_socket)]
+
+    # GPU
+    if config.nvidia_gpu:
+        mount_tasks += [
+            MountTask(MountMode.BIND_DEV, "/dev/nvidia0"),
+            MountTask(MountMode.BIND_DEV, "/dev/nvidiactl"),
+            MountTask(MountMode.BIND_DEV, "/dev/nvidia-modeset"),
+        ]
 
     # Wine
     run_winecfg = X11Mode(config.x11) != X11Mode.NONE and (
