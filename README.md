@@ -54,6 +54,7 @@ unchecking these two boxes:
 If Winamp crashes right after showing the main window, run it once more,
 there is some Wine bug at work here.
 
+
 ### Run Games (3D applications) with modern stack (Wayland)
 
 ```console
@@ -63,6 +64,7 @@ sandwine --dotwine ~/.wine:rw --pass /path/to/Games/folder:rw --wayland --pulsea
 
 `--pass /path/to/Games/folder:rw` is used if your Games sit in system partition path.
 If your games are located in Wineprefix like "~/.wine/drive_c/Games", you don't need this parameter.
+
 
 ### Run Geiss Screensaver: with sound, with host X11 (careful!), no networking, no `~/*` file access
 
