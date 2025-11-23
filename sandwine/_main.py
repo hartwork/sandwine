@@ -85,7 +85,7 @@ def parse_command_line(args: list[str], with_wine: bool):
 
     parser.add_argument("--version", action="version", version=distribution["Version"])
 
-    program = parser.add_argument_group("Positional arguments")
+    program = parser.add_argument_group("positional arguments")
     program.add_argument("argv_0", metavar="PROGRAM", nargs="?", help="command to run")
     program.add_argument(
         "argv_1_plus", metavar="ARG", nargs="*", help="arguments to pass to PROGRAM"
@@ -152,19 +152,19 @@ def parse_command_line(args: list[str], with_wine: bool):
         help="enable use of host X11 (CAREFUL!) (default: X11 disabled)",
     )
 
-    gpu_nvidia = parser.add_argument_group("GPU arguments")
+    gpu_nvidia = parser.add_argument_group("gpu arguments")
     gpu_nvidia.add_argument(
         "--gpu-nvidia",
         action="store_true",
-        help="enable NVIDIA GPU access (default: NVIDIA GPU access disabled)",
+        help="enable Nvidia GPU access (default: Nvidia GPU access disabled)",
     )
 
-    networking = parser.add_argument_group("Networking arguments")
+    networking = parser.add_argument_group("networking arguments")
     networking.add_argument(
         "--network", action="store_true", help="enable networking (default: networking disabled)"
     )
 
-    sound = parser.add_argument_group("Sound arguments")
+    sound = parser.add_argument_group("sound arguments")
     sound.add_argument(
         "--pulseaudio",
         action="store_true",
@@ -176,7 +176,7 @@ def parse_command_line(args: list[str], with_wine: bool):
         help="enable sound using PipeWire (default: sound disabled)",
     )
 
-    mount = parser.add_argument_group("Mount arguments")
+    mount = parser.add_argument_group("mount arguments")
     if with_wine:
         mount.add_argument(
             "--dotwine",
@@ -194,7 +194,7 @@ def parse_command_line(args: list[str], with_wine: bool):
         help="bind mount host PATH on PATH (CAREFUL!)",
     )
 
-    general = parser.add_argument_group("General operation arguments")
+    general = parser.add_argument_group("general operation arguments")
     if with_wine:
         general.add_argument(
             "--configure",
