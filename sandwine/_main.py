@@ -85,7 +85,7 @@ def parse_command_line(args: list[str], with_wine: bool):
 
     parser.add_argument("--version", action="version", version=distribution["Version"])
 
-    program = parser.add_argument_group("positional arguments")
+    program = parser.add_argument_group("Positional arguments")
     program.add_argument("argv_0", metavar="PROGRAM", nargs="?", help="command to run")
     program.add_argument(
         "argv_1_plus", metavar="ARG", nargs="*", help="arguments to pass to PROGRAM"
@@ -152,12 +152,19 @@ def parse_command_line(args: list[str], with_wine: bool):
         help="enable use of host X11 (CAREFUL!) (default: X11 disabled)",
     )
 
-    networking = parser.add_argument_group("networking arguments")
+    gpu_nvidia = parser.add_argument_group("GPU arguments")
+    gpu_nvidia.add_argument(
+        "--gpu-nvidia",
+        action="store_true",
+        help="enable NVIDIA GPU access (default: NVIDIA GPU access disabled)",
+    )
+
+    networking = parser.add_argument_group("Networking arguments")
     networking.add_argument(
         "--network", action="store_true", help="enable networking (default: networking disabled)"
     )
 
-    sound = parser.add_argument_group("sound arguments")
+    sound = parser.add_argument_group("Sound arguments")
     sound.add_argument(
         "--pulseaudio",
         action="store_true",
@@ -169,7 +176,7 @@ def parse_command_line(args: list[str], with_wine: bool):
         help="enable sound using PipeWire (default: sound disabled)",
     )
 
-    mount = parser.add_argument_group("mount arguments")
+    mount = parser.add_argument_group("Mount arguments")
     if with_wine:
         mount.add_argument(
             "--dotwine",
@@ -187,7 +194,7 @@ def parse_command_line(args: list[str], with_wine: bool):
         help="bind mount host PATH on PATH (CAREFUL!)",
     )
 
-    general = parser.add_argument_group("general operation arguments")
+    general = parser.add_argument_group("General operation arguments")
     if with_wine:
         general.add_argument(
             "--configure",
@@ -298,6 +305,7 @@ def create_bwrap_argv(config):
         MountTask(MountMode.TMPFS, "/"),
         MountTask(MountMode.BIND_RO, "/bin"),
         MountTask(MountMode.DEVTMPFS, "/dev"),
+        MountTask(MountMode.BIND_DEV, "/dev/ntsync"),
         MountTask(MountMode.BIND_DEV, "/dev/dri"),
         MountTask(MountMode.BIND_RO, "/etc"),
         infer_mount_task(MountMode.BIND_RO, "/lib"),
@@ -355,6 +363,12 @@ def create_bwrap_argv(config):
         env_tasks["WAYLAND_DISPLAY"] = wayland_display
         env_tasks["XDG_RUNTIME_DIR"] = xdg_runtime_dir
         mount_tasks += [MountTask(MountMode.BIND_RO, wayland_socket)]
+
+    # GPU
+    if config.gpu_nvidia:
+        mount_tasks += [MountTask(MountMode.BIND_DEV, "/dev/nvidia0"),
+                        MountTask(MountMode.BIND_DEV, "/dev/nvidiactl"),
+                        MountTask(MountMode.BIND_DEV, "/dev/nvidia-modeset")]
 
     # Wine
     run_winecfg = X11Mode(config.x11) != X11Mode.NONE and (
