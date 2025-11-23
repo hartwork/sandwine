@@ -152,7 +152,7 @@ def parse_command_line(args: list[str], with_wine: bool):
         help="enable use of host X11 (CAREFUL!) (default: X11 disabled)",
     )
 
-    gpu_nvidia = parser.add_argument_group("gpu arguments")
+    gpu_nvidia = parser.add_argument_group("GPU arguments")
     gpu_nvidia.add_argument(
         "--nvidia-gpu",
         action="store_true",
