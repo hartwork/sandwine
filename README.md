@@ -54,6 +54,11 @@ unchecking these two boxes:
 If Winamp crashes right after showing the main window, run it once more,
 there is some Wine bug at work here.
 
+### Run Game (3D application) with modern stack (Wayland)
+
+```console
+sandwine --dotwine ~/.wine:rw --pass /path/to/Games/folder:rw --wayland --pulseaudio "/path/to/Games/folder/Start.exe"
+```
 
 ### Run Geiss Screensaver: with sound, with host X11 (careful!), no networking, no `~/*` file access
 
