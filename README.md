@@ -154,6 +154,8 @@ So what is shared with the application by default then?
 - Support for `/etc/resolv.conf` provided by:
   - NetworkManager
   - systemd-resolved
+- Support for Nvidia GPUs
+- Support for [NTsync](https://lwn.net/Articles/962325/)
 
 
 # Threat Model and Known Limitations
