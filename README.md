@@ -116,6 +116,7 @@ So what is shared with the application by default then?
 | `/bin` | read-only bind mount |
 | `/dev` | new devtmpfs |
 | `/dev/dri` | read-write bind mount with device access |
+| `/dev/ntsync` | bind mount with device access |
 | `/etc` | read-only bind mount |
 | `${HOME}` | new tmpfs |
 | `${HOME}/.wine` | new tmpfs |
