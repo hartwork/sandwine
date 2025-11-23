@@ -154,7 +154,7 @@ def parse_command_line(args: list[str], with_wine: bool):
 
     gpu_nvidia = parser.add_argument_group("gpu arguments")
     gpu_nvidia.add_argument(
-        "--gpu-nvidia",
+        "--nvidia-gpu",
         action="store_true",
         help="enable Nvidia GPU access (default: Nvidia GPU access disabled)",
     )
