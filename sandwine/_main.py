@@ -53,6 +53,10 @@ class MountMode(Enum):
     TMPFS = auto()
 
 
+class WineprefixSharingPrevented(Exception):
+    pass
+
+
 class UppercaseUsageRawHelpFormatter(RawTextHelpFormatter):
     def _format_usage(self, usage, actions, groups, prefix):
         if prefix is None:
@@ -400,6 +404,15 @@ def create_bwrap_argv(config):
     if config.dotwine is not None:
         dotwine_source_path, dotwine_access = config.dotwine
 
+        if (
+            dotwine_access != AccessMode.READ_ONLY
+            and os.path.realpath(dotwine_source_path) == dotwine_target_path
+        ):
+            raise WineprefixSharingPrevented(
+                "Rejected sharing host directory ~/.wine with the sandbox "
+                "in read-write mode because it is not secure."
+            )
+
         if dotwine_access == AccessMode.READ_WRITE:
             mount_mode = MountMode.BIND_RW
         else:
@@ -628,6 +641,10 @@ def _inner_main(with_wine: bool):
 
     except KeyboardInterrupt:
         exit_code = 128 + signal.SIGINT
+
+    except WineprefixSharingPrevented as e:
+        _logger.error(e)
+        exit_code = 1
 
     sys.exit(exit_code)
 

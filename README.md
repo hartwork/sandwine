@@ -58,7 +58,7 @@ there is some Wine bug at work here.
 ### Run Games (3D applications) with modern stack (Wayland)
 
 ```console
-sandwine --dotwine ~/.wine:rw --pass /path/to/Games/folder:rw --wayland --pulseaudio "/path/to/Games/folder/Start.exe"
+sandwine --dotwine ~/.wine_game_xyz:rw --pass /path/to/Games/folder:rw --wayland --pulseaudio "/path/to/Games/folder/Start.exe"
 ```
 `--dotwine ~/.wine:rw` is needed to specify persistent Wineprefix. Needed for saves to be stored.
 
