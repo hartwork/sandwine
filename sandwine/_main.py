@@ -53,6 +53,13 @@ class MountMode(Enum):
     TMPFS = auto()
 
 
+class UppercaseUsageRawHelpFormatter(RawTextHelpFormatter):
+    def _format_usage(self, usage, actions, groups, prefix):
+        if prefix is None:
+            prefix = "Usage: "  # Note the uppercase here
+        return super()._format_usage(usage, actions, groups, prefix)
+
+
 def parse_command_line(args: list[str], with_wine: bool):
     distribution = metadata("sandwine")
 
@@ -64,38 +71,47 @@ def parse_command_line(args: list[str], with_wine: bool):
     )
 
     usage = dedent(f"""\
-        usage: {prog} [OPTIONS] [--] PROGRAM [ARG ..]
+        Usage: {prog} [OPTIONS] [--] PROGRAM [ARG ..]
            or: {prog} [OPTIONS] --configure
            or: {prog} --help
            or: {prog} --version
-    """)[len("usage: ") :]
+    """)[len("Usage: ") :]
 
     parser = ArgumentParser(
         prog=prog,
         usage=usage,
         description=description,
-        formatter_class=RawTextHelpFormatter,
+        formatter_class=UppercaseUsageRawHelpFormatter,
         epilog=dedent("""\
             Software libre licensed under GPL v3 or later.
             Brought to you by Sebastian Pipping <sebastian@pipping.org>.
 
             Please report bugs at https://github.com/hartwork/sandwine — thank you!
         """),
+        add_help=False,
     )
 
-    parser.add_argument("--version", action="version", version=distribution["Version"])
+    parser._optionals.title = parser._optionals.title.title()
 
-    program = parser.add_argument_group("positional arguments")
-    program.add_argument("argv_0", metavar="PROGRAM", nargs="?", help="command to run")
+    parser.add_argument("-h", "--help", action="help", help="Show this help message and exit")
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=distribution["Version"],
+        help="Show program's version number and exit",
+    )
+
+    program = parser.add_argument_group("Positional arguments")
+    program.add_argument("argv_0", metavar="PROGRAM", nargs="?", help="Command to run")
     program.add_argument(
-        "argv_1_plus", metavar="ARG", nargs="*", help="arguments to pass to PROGRAM"
+        "argv_1_plus", metavar="ARG", nargs="*", help="Arguments to pass to PROGRAM"
     )
 
     wayland_args = parser.add_argument_group("Wayland arguments")
     wayland_args.add_argument(
         "--wayland",
         action="store_true",
-        help="enable use of Wayland (default: Wayland disabled)",
+        help="Enable use of Wayland (default: Wayland disabled)",
     )
 
     x11_args = parser.add_argument_group("X11 arguments")
@@ -105,7 +121,7 @@ def parse_command_line(args: list[str], with_wine: bool):
         dest="x11",
         action="store_const",
         const=X11Mode.AUTO,
-        help="enable nested X11 using X2Go nxagent or Xephyr or Xnest"
+        help="Enable nested X11 using X2Go nxagent or Xephyr or Xnest"
         " but not Xvfb and not Xpra"
         " (default: X11 disabled)",
     )
@@ -114,74 +130,74 @@ def parse_command_line(args: list[str], with_wine: bool):
         dest="x11",
         action="store_const",
         const=X11Mode.NXAGENT,
-        help="enable nested X11 using X2Go nxagent (default: X11 disabled)",
+        help="Enable nested X11 using X2Go nxagent (default: X11 disabled)",
     )
     x11_args.add_argument(
         "--xephyr",
         dest="x11",
         action="store_const",
         const=X11Mode.XEPHYR,
-        help="enable nested X11 using Xephyr (default: X11 disabled)",
+        help="Enable nested X11 using Xephyr (default: X11 disabled)",
     )
     x11_args.add_argument(
         "--xnest",
         dest="x11",
         action="store_const",
         const=X11Mode.XNEST,
-        help="enable nested X11 using Xnest (default: X11 disabled)",
+        help="Enable nested X11 using Xnest (default: X11 disabled)",
     )
     x11_args.add_argument(
         "--xpra",
         dest="x11",
         action="store_const",
         const=X11Mode.XPRA,
-        help="enable nested X11 using Xpra (EXPERIMENTAL, CAREFUL!) (default: X11 disabled)",
+        help="Enable nested X11 using Xpra (EXPERIMENTAL, CAREFUL!) (default: X11 disabled)",
     )
     x11_args.add_argument(
         "--xvfb",
         dest="x11",
         action="store_const",
         const=X11Mode.XVFB,
-        help="enable nested X11 using Xvfb (default: X11 disabled)",
+        help="Enable nested X11 using Xvfb (default: X11 disabled)",
     )
     x11_args.add_argument(
         "--host-x11-danger-danger",
         dest="x11",
         action="store_const",
         const=X11Mode.HOST,
-        help="enable use of host X11 (CAREFUL!) (default: X11 disabled)",
+        help="Enable use of host X11 (CAREFUL!) (default: X11 disabled)",
     )
 
     nvidia_gpu = parser.add_argument_group("GPU arguments")
     nvidia_gpu.add_argument(
         "--nvidia-gpu",
         action="store_true",
-        help="enable Nvidia GPU access (default: Nvidia GPU access disabled)",
+        help="Enable Nvidia GPU access (default: Nvidia GPU access disabled)",
     )
 
-    networking = parser.add_argument_group("networking arguments")
+    networking = parser.add_argument_group("Networking arguments")
     networking.add_argument(
-        "--network", action="store_true", help="enable networking (default: networking disabled)"
+        "--network", action="store_true", help="Enable networking (default: networking disabled)"
     )
 
-    sound = parser.add_argument_group("sound arguments")
+    sound = parser.add_argument_group("Sound arguments")
     sound.add_argument(
         "--pulseaudio",
         action="store_true",
-        help="enable sound using PulseAudio (default: sound disabled)",
+        help="Enable sound using PulseAudio (default: sound disabled)",
     )
     sound.add_argument(
         "--pipewire",
         action="store_true",
-        help="enable sound using PipeWire (default: sound disabled)",
+        help="Enable sound using PipeWire (default: sound disabled)",
     )
 
-    mount = parser.add_argument_group("mount arguments")
+    mount = parser.add_argument_group("Mount arguments")
     if with_wine:
         mount.add_argument(
             "--dotwine",
             metavar="PATH:{ro,rw}",
-            help="use PATH for ~/.wine/ (default: use tmpfs, empty and non-persistent)",
+            help="Use PATH for ~/.wine/ (default: use tmpfs, empty and non-persistent)",
         )
     else:
         mount.set_defaults(dotwine=None)
@@ -191,15 +207,15 @@ def parse_command_line(args: list[str], with_wine: bool):
         default=[],
         action="append",
         metavar="PATH:{ro,rw}",
-        help="bind mount host PATH on PATH (CAREFUL!)",
+        help="Bind mount host PATH on PATH (CAREFUL!)",
     )
 
-    general = parser.add_argument_group("general operation arguments")
+    general = parser.add_argument_group("General operation arguments")
     if with_wine:
         general.add_argument(
             "--configure",
             action="store_true",
-            help="enforce running winecfg before start of PROGRAM (default: run winecfg as needed)",
+            help="Enforce running winecfg before start of PROGRAM (default: run winecfg as needed)",
         )
     else:
         mount.set_defaults(configure=None)
@@ -208,7 +224,7 @@ def parse_command_line(args: list[str], with_wine: bool):
         dest="with_pty",
         default=True,
         action="store_false",
-        help="refrain from creating a pseudo-terminal"
+        help="Refrain from creating a pseudo-terminal"
         ", stop protecting against TIOCSTI/TIOCLINUX hijacking (CAREFUL!)"
         " (default: create a pseudo-terminal)",
     )
@@ -218,7 +234,7 @@ def parse_command_line(args: list[str], with_wine: bool):
             dest="with_wine",
             default=True,
             action="store_false",
-            help='run PROGRAM without use of Wine (default: run command "wine PROGRAM [ARG ..]")',
+            help='Run PROGRAM without use of Wine (default: run command "wine PROGRAM [ARG ..]")',
         )
     else:
         mount.set_defaults(with_wine=False)
@@ -226,7 +242,7 @@ def parse_command_line(args: list[str], with_wine: bool):
         "--retry",
         dest="second_try",
         action="store_true",
-        help="on non-zero exit code run PROGRAM a second time"
+        help="On non-zero exit code run PROGRAM a second time"
         "; helps to workaround weird graphics-related crashes"
         " (default: run command once)",
     )
