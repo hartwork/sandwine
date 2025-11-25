@@ -198,6 +198,7 @@ def parse_command_line(args: list[str], with_wine: bool):
             "--dotwine",
             metavar="PATH:{ro,rw}",
             help="Use PATH for ~/.wine/ (default: use tmpfs, empty and non-persistent)",
+            type=parse_path_colon_access,
         )
     else:
         mount.set_defaults(dotwine=None)
@@ -290,6 +291,9 @@ def parse_path_colon_access(candidate):
         return path, AccessMode.READ_WRITE
 
     raise ValueError(error_message)
+
+
+parse_path_colon_access.__name__ = "PATH:{ro,rw}"  # for argparse
 
 
 @dataclass
@@ -394,7 +398,7 @@ def create_bwrap_argv(config):
     )
     dotwine_target_path = os.path.expanduser("~/.wine")
     if config.dotwine is not None:
-        dotwine_source_path, dotwine_access = parse_path_colon_access(config.dotwine)
+        dotwine_source_path, dotwine_access = config.dotwine
 
         if dotwine_access == AccessMode.READ_WRITE:
             mount_mode = MountMode.BIND_RW
