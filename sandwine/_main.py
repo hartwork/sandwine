@@ -196,12 +196,12 @@ def parse_command_line(args: list[str], with_wine: bool):
         help="Enable sound using PipeWire (default: sound disabled)",
     )
 
-    input_args = parser.add_argument_group('Input arguments')
+    input_args = parser.add_argument_group("Input arguments")
     input_args.add_argument(
-        '--raw-input',
-        dest='raw_input',
-        action='store_true',
-        help='Enable access to /dev/input for gamepads (CAREFUL!) (default: raw input disabled)'
+        "--raw-input",
+        dest="raw_input",
+        action="store_true",
+        help="Enable access to /dev/input for gamepads (CAREFUL!) (default: raw input disabled)"
     )
 
     mount = parser.add_argument_group("Mount arguments")
@@ -407,8 +407,8 @@ def create_bwrap_argv(config):
     # Input
     if config.raw_input:
         # default udev based hotplug not working in container
-        env_tasks['SDL_JOYSTICK_DISABLE_UDEV'] = "1"
-        mount_tasks += [MountTask(MountMode.BIND_DEV, '/dev/input')]
+        env_tasks["SDL_JOYSTICK_DISABLE_UDEV"] = "1"
+        mount_tasks += [MountTask(MountMode.BIND_DEV, "/dev/input")]
 
     # Wine
     run_winecfg = X11Mode(config.x11) != X11Mode.NONE and (
