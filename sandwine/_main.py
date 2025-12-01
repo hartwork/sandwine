@@ -201,7 +201,7 @@ def parse_command_line(args: list[str], with_wine: bool):
         "--raw-input",
         dest="raw_input",
         action="store_true",
-        help="Enable access to /dev/input for gamepads (CAREFUL!) (default: raw input disabled)"
+        help="Enable access to /dev/input for gamepads (CAREFUL!) (default: raw input disabled)",
     )
 
     mount = parser.add_argument_group("Mount arguments")
