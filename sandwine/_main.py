@@ -406,7 +406,7 @@ def create_bwrap_argv(config):
 
     # Input
     if config.raw_input:
-        # default udev based hotplug not working in conatiner
+        # default udev based hotplug not working in container
         env_tasks['SDL_JOYSTICK_DISABLE_UDEV'] = "1"
         mount_tasks += [MountTask(MountMode.BIND_DEV, '/dev/input')]
 
