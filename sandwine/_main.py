@@ -172,6 +172,7 @@ def parse_command_line(args: list[str], with_wine: bool):
         help="Enable use of host X11 (CAREFUL!) (default: X11 disabled)",
     )
 
+
     nvidia_gpu = parser.add_argument_group("GPU arguments")
     nvidia_gpu.add_argument(
         "--nvidia-gpu",
@@ -194,6 +195,14 @@ def parse_command_line(args: list[str], with_wine: bool):
         "--pipewire",
         action="store_true",
         help="Enable sound using PipeWire (default: sound disabled)",
+    )
+
+    input_args = parser.add_argument_group('Input arguments')
+    input_args.add_argument(
+        '--raw-input',
+        dest='raw_input',
+        action='store_true',
+        help='Enable access to /dev/input for a working game controller (CAREFUL!) (default: /dev/input not forwarded)'
     )
 
     mount = parser.add_argument_group("Mount arguments")
@@ -395,6 +404,12 @@ def create_bwrap_argv(config):
             MountTask(MountMode.BIND_DEV, "/dev/nvidiactl"),
             MountTask(MountMode.BIND_DEV, "/dev/nvidia-modeset"),
         ]
+
+    # Input
+    if config.raw_input:
+        # default udev based hotplug not working in conatiner
+        env_tasks['SDL_JOYSTICK_DISABLE_UDEV'] = "1"
+        mount_tasks += [MountTask(MountMode.BIND_DEV, '/dev/input')]
 
     # Wine
     run_winecfg = X11Mode(config.x11) != X11Mode.NONE and (
