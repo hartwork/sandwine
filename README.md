@@ -62,7 +62,7 @@ sandwine --dotwine ~/.wine-games:rw --pass /path/to/Games/folder:rw --wayland --
 ```
 `--dotwine ~/.wine-games:rw` is needed to specify persistent Wineprefix. Needed for saves to be stored.
 
-`--pass /path/to/Games/folder:rw` is used if your Games sit in system partition path.
+`--pass /path/to/Games/folder:rw` is used if your Games sit in system storage path.
 If your games are located in Wineprefix like "~/.wine/drive_c/Games", you don't need this parameter.
 
 Optional: `--nvidia-gpu` to enable access to Nvidia GPU.
