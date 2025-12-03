@@ -58,13 +58,14 @@ there is some Wine bug at work here.
 ### Run Games (3D applications) with modern stack (Wayland)
 
 ```console
-sandwine --dotwine ~/.wine_game_xyz:rw --pass /path/to/Games/folder:rw --wayland --pulseaudio "/path/to/Games/folder/Start.exe"
+sandwine --dotwine ~/.wine-games:rw --pass /path/to/Games/folder:rw --wayland --pulseaudio "/path/to/Games/folder/Start.exe"
 ```
-`--dotwine ~/.wine:rw` is needed to specify persistent Wineprefix. Needed for saves to be stored.
+`--dotwine ~/.wine-games:rw` is needed to specify persistent Wineprefix. Needed for saves to be stored.
 
-`--pass /path/to/Games/folder:rw` is used if your Games sit in system partition path.
+`--pass /path/to/Games/folder:rw` is used if your Games sit in system storage path.
 If your games are located in Wineprefix like "~/.wine/drive_c/Games", you don't need this parameter.
 
+Optional: `--nvidia-gpu` to enable access to Nvidia GPU.
 
 ### Run Geiss Screensaver: with sound, with host X11 (careful!), no networking, no `~/*` file access
 
