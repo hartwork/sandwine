@@ -198,6 +198,15 @@ So what is shared with the application by default then?
 - Start-up time below 200ms is not a goal.
 
 
+# Building from source
+```bash
+git clone https://github.com/hartwork/sandwine
+cd sandwine
+pyproject-build
+pip3 install .
+```
+
+
 # Reporting Vulnerabilities
 
 If you think you found a vulnerability in sandwine,
