@@ -109,10 +109,11 @@ To achieve that, by default the launched application:
 
 - Has access to isolated and temporary /home and /, therefore after process finish all data is being discarded. (unless you pass `--pass /path/to:{ro,rw}` for a related directory).
 - Does not have access to the internet (unless you pass `--network`).
-- Does not have access to your local X11 server
+- Does not have access to your local X11 server.
   (unless you enable some form of X11 integration, ideally nested X11).
-- Does not have access to your local Wayland display server (unless you pass `--wayland`)
+- Does not have access to your local Wayland display server (unless you pass `--wayland`).
 - Does not have access to your sound card (unless you pass `--pulseaudio` and/or `--pipewire`).
+- Does not have access to your GPU card (unless you pass `--nvidia-gpu`).
 
 So what is shared with the application by default then?
 
