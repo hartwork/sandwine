@@ -203,7 +203,6 @@ So what is shared with the application by default then?
 ```bash
 git clone https://github.com/hartwork/sandwine
 cd sandwine
-python3 -m build
 pip3 install .
 ```
 
