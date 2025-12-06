@@ -199,6 +199,7 @@ So what is shared with the application by default then?
 
 
 # Building from source
+
 ```bash
 git clone https://github.com/hartwork/sandwine
 cd sandwine
