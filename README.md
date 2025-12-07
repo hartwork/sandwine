@@ -107,12 +107,13 @@ but is needed here to invoke non-Wine wget.
 
 To achieve that, by default the launched application:
 
-- Sees no files in `${HOME}` and/or `/home/` (unless you pass `--pass PATH:{ro,rw}` for a related directory).
-- Does not have access to the internet (unless you pass `--network`).
+- Sees no files in `${HOME}` and/or `/home/` (but a [tmpfs](https://www.kernel.org/doc/html/latest/filesystems/tmpfs.html) where written data lives in RAM and is being discarded on process termination, unless you pass `--pass PATH:{ro,rw}` for a related directory)
+- Does not have access to the internet (unless you pass `--network`)
 - Does not have access to your local X11 server
-  (unless you enable some form of X11 integration, ideally nested X11).
+  (unless you enable some form of X11 integration, ideally nested X11)
 - Does not have access to your local Wayland display server (unless you pass `--wayland`)
-- Does not have access to your sound card (unless you pass `--pulseaudio` and/or `--pipewire`).
+- Does not have access to your sound card (unless you pass `--pulseaudio` and/or `--pipewire`)
+- Does not have access to your GPU card (unless you pass `--nvidia-gpu`)
 
 So what is shared with the application by default then?
 
@@ -195,6 +196,15 @@ So what is shared with the application by default then?
   escalation.  Think of a model like the Docker daemon where whoever can talk to the Docker
   daemon can become root. If you use sandwine with something like that, sandwine will have a problem.
 - Start-up time below 200ms is not a goal.
+
+
+# Building from source
+
+```bash
+git clone https://github.com/hartwork/sandwine
+cd sandwine
+pip3 install .
+```
 
 
 # Reporting Vulnerabilities
