@@ -114,6 +114,7 @@ To achieve that, by default the launched application:
 - Does not have access to your local Wayland display server (unless you pass `--wayland`)
 - Does not have access to your sound card (unless you pass `--pulseaudio` and/or `--pipewire`)
 - Does not have access to your GPU card (unless you pass `--nvidia-gpu`)
+- Does not have access to `/dev/input` (unless you pass `--raw-input`).
 
 So what is shared with the application by default then?
 
