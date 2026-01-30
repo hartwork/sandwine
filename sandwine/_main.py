@@ -608,12 +608,25 @@ def require_recent_bubblewrap():
         sys.exit(1)
 
 
+def require_command_available(command: str):
+    if shutil.which(command) is None:
+        raise CommandNotFound(command)
+
+
 def _inner_main(with_wine: bool):
     exit_code = 0
     try:
         config = parse_command_line(sys.argv[1:], with_wine=with_wine)
 
         coloredlogs.install(level=logging.DEBUG)
+
+        require_command_available("bwrap")
+
+        if config.with_pty:
+            # NOTE: Despite being part of util-linux, command "script"
+            #       may not be available on Fedora, and it has its own
+            #       package "util-linux-script".
+            require_command_available("script")
 
         require_recent_bubblewrap()
 
