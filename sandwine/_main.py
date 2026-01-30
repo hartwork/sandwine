@@ -53,6 +53,14 @@ class MountMode(Enum):
     TMPFS = auto()
 
 
+class CommandNotFound(FileNotFoundError):
+    def __init__(self, command: str):
+        self._command = command
+
+    def __str__(self):
+        return f"Command {self._command!r} is not available."
+
+
 class WineprefixSharingPrevented(Exception):
     pass
 
@@ -636,8 +644,7 @@ def _inner_main(with_wine: bool):
             try:
                 exit_code = subprocess.call(argv)
             except FileNotFoundError:
-                _logger.error(f"Command {argv[0]!r} is not available, aborting.")
-                exit_code = 127
+                raise CommandNotFound(command=argv[0])
 
     except KeyboardInterrupt:
         exit_code = 128 + signal.SIGINT
@@ -645,6 +652,11 @@ def _inner_main(with_wine: bool):
     except WineprefixSharingPrevented as e:
         _logger.error(e)
         exit_code = 1
+
+    except CommandNotFound as e:
+        message = f"{str(e)[:-1]}, aborting."
+        _logger.error(message)
+        exit_code = 127
 
     sys.exit(exit_code)
 
