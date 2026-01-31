@@ -263,8 +263,7 @@ def parse_command_line(args: list[str], with_wine: bool):
         "--one-line",
         dest="one_line",
         action="store_true",
-        help="Fit executable command into single line"
-        " (default: outputs multi-line command)",
+        help="Fit executable command into single line (default: outputs multi-line command)",
     )
 
     return parser.parse_args(args)
