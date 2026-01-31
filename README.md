@@ -41,7 +41,7 @@ for NSIS.)
 ### Run installed Winamp: with sound, with nested X11, no networking, no `~/*` file access
 
 ```console
-# sandwine --pulseaudio --x11 --dotwine winamp/:rw --pass ~/Music/:ro --configure -- winamp
+# sandwine --no-pty --pulseaudio --x11 --dotwine winamp/:rw --pass ~/Music/:ro --configure -- winamp
 ```
 
 Argument `--configure` will bring up `winecfg` prior to Winamp so that you have a chance at
@@ -58,7 +58,7 @@ there is some Wine bug at work here.
 ### Run Games (3D applications) with modern stack (Wayland)
 
 ```console
-sandwine --dotwine ~/.wine-games:rw --pass /path/to/Games/folder:rw --wayland --pulseaudio "/path/to/Games/folder/Start.exe"
+sandwine --no-pty --dotwine ~/.wine-games:rw --pass /path/to/Games/folder:rw --wayland --pulseaudio "/path/to/Games/folder/Start.exe"
 ```
 `--dotwine ~/.wine-games:rw` is needed to specify persistent Wineprefix. Needed for saves to be stored.
 
