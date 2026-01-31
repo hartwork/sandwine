@@ -259,6 +259,13 @@ def parse_command_line(args: list[str], with_wine: bool):
         "; helps to workaround weird graphics-related crashes"
         " (default: run command once)",
     )
+    general.add_argument(
+        "--one-line",
+        dest="one_line",
+        action="store_true",
+        help="Fit executable command into single line"
+        " (default: outputs multi-line command)",
+    )
 
     return parser.parse_args(args)
 
@@ -279,12 +286,18 @@ class ArgvBuilder:
     def iter_groups(self):
         yield from self._groups
 
-    def announce_to(self, target):
+    def announce_to_multiline(self, target):
         for i, group in enumerate(self._groups):
             prefix = "# " if (i == 0) else " " * 4
             flat_args = shlex.join(group)
             suffix = "" if (i == len(self._groups) - 1) else " \\"
             print(f"{prefix}{flat_args}{suffix}", file=target)
+
+    def announce_to_one_line(self, target):
+        list_nyx = []
+        for group in self._groups:
+            list_nyx += [shlex.join(group)]
+        print(" ".join(list_nyx), file=target)
 
 
 def single_trailing_sep(path):
@@ -642,7 +655,11 @@ def _inner_main(with_wine: bool):
             x11context = nullcontext()
 
         argv_builder = create_bwrap_argv(config)
-        argv_builder.announce_to(sys.stderr)
+
+        if config.one_line:
+            argv_builder.announce_to_one_line(sys.stderr)
+        else:
+            argv_builder.announce_to_multiline(sys.stderr)
 
         argv = list(argv_builder.iter_flat())
 
