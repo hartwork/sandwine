@@ -58,14 +58,22 @@ there is some Wine bug at work here.
 ### Run Games (3D applications) with modern stack (Wayland)
 
 ```console
-sandwine --dotwine ~/.wine-games:rw --pass /path/to/Games/folder:rw --wayland --pulseaudio "/path/to/Games/folder/Start.exe"
+sandwine --dotwine ~/".wine-games":rw --pass "/path/to/Games/":rw --wayland --pulseaudio "/path/to/Games/Game Title/Start.exe"
 ```
-`--dotwine ~/.wine-games:rw` is needed to specify persistent Wineprefix. Needed for saves to be stored.
+`--dotwine ~/".wine-games":rw` is needed to specify persistent Wineprefix. Needed for saves/data to be stored.
 
-`--pass /path/to/Games/folder:rw` is used if your Games sit in system storage path.
-If your games are located in Wineprefix like "~/.wine/drive_c/Games", you don't need this parameter.
+`--pass "/path/to/Games/":rw` is used for providing access to storage path.
 
 Optional: `--nvidia-gpu` to enable access to Nvidia GPU.
+
+Since Sandwine prevents usage of `~/.wine` directory as Wineprefix for security reasons, it is recommended to use external folder to run software.
+You can run software from `~/.wine-games` by creating symbolic link to internal Wineprefix folder and use it as external one, by `ln -s ~/".wine-games/drive_c/" ~/"Wine internal software"`
+
+Updated command:
+```console
+sandwine --dotwine ~/".wine-games":rw --pass ~/"Wine internal software/Games/Game Title":rw --wayland --pulseaudio ~/"Wine internal software/Games/Game Title/Start.exe"
+```
+
 
 ### Run Geiss Screensaver: with sound, with host X11 (careful!), no networking, no `~/*` file access
 
