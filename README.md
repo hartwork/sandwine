@@ -25,7 +25,7 @@ is licensed under the "GPL v3 or later" license.
 # Usage Examples
 
 
-### Install Winamp 5.66: no networking, no X11, no sound, no access to `~/*` files
+### Install Winamp 5.66: no networking, no video, no sound, no access to `~/*` files
 
 ```
 # cd ~/Downloads/
@@ -93,7 +93,7 @@ Potentially a bug in Wine, needs more investigation.
 PS: The Geiss Screensaver has its GitHub home at https://github.com/geissomatik/geiss .
 
 
-### Run wget: with networking, no X11, no sound, no access to `~/*` files
+### Run wget: with networking, no video, no sound, no access to `~/*` files
 
 ```console
 # sandwine --network --no-wine -- wget -S -O/dev/null https://blog.hartwork.org/
