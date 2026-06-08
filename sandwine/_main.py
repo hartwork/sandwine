@@ -507,6 +507,21 @@ def create_bwrap_argv(config):
                 mount_tasks += [MountTask(MountMode.BIND_RO, wine_opt_prefix.rstrip("/"))]
                 break
 
+    # Even More Wine: Point Wine and the clean-shutdown wrapper at the wineserver
+    #                 binary by absolute path. Wine itself honors ${WINESERVER},
+    #                 so this removes any reliance on ${PATH} and works regardless
+    #                 of the distribution's install location (e.g. Debian/Ubuntu
+    #                 multiarch /usr/lib/x86_64-linux-gnu/wine/). The binary may
+    #                 live outside the default mount stack (e.g. via a custom
+    #                 ${WINESERVER}), so bind-mount it explicitly to guarantee it
+    #                 exists inside the sandbox.
+    if config.with_wine:
+        wineserver_abs_path = find_wineserver()
+        if wineserver_abs_path is None:
+            raise CommandNotFound("wineserver")
+        env_tasks["WINESERVER"] = wineserver_abs_path
+        mount_tasks += [MountTask(MountMode.BIND_RO, wineserver_abs_path)]
+
     # Extra binds
     for bind in config.extra_binds:
         mount_target_orig, mount_access = parse_path_colon_access(bind)
@@ -591,11 +606,6 @@ def create_bwrap_argv(config):
 
     # Filter ${PATH}
     candidate_paths = os.environ["PATH"].split(os.pathsep)
-    if (wineserver_abs_path := find_wineserver()) is not None:
-        # Make wineserver reachable by bare name on ${PATH} inside the sandbox,
-        # regardless of the distribution's install location (e.g. Debian/Ubuntu
-        # multiarch /usr/lib/x86_64-linux-gnu/wine/).
-        candidate_paths.append(os.path.dirname(wineserver_abs_path))
     available_paths = []
     for candidate_path in candidate_paths:
         candidate_path = os.path.realpath(candidate_path)
@@ -626,7 +636,11 @@ def create_bwrap_argv(config):
 
     # Wrap with wineserver (for clean shutdown, it defaults to 3 seconds timeout)
     if config.with_wine:
-        argv.add("sh", "-c", 'wineserver -p0 && "$0" "$@" ; ret=$? ; wineserver -k ; exit ${ret}')
+        argv.add(
+            "sh",
+            "-c",
+            '"$WINESERVER" -p0 && "$0" "$@" ; ret=$? ; "$WINESERVER" -k ; exit ${ret}',
+        )
 
     # Add winecfg
     if run_winecfg and config.with_wine:
