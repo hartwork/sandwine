@@ -35,6 +35,8 @@ import coloredlogs
 
 from sandwine._x11 import X11Display, X11Mode, create_x11_context, detect_and_require_nested_x11
 
+_WINESERVER_BIN_PATH_UBUNTU_26_04 = "/usr/lib/x86_64-linux-gnu/wine"
+
 _logger = logging.getLogger(__name__)
 
 
@@ -466,6 +468,10 @@ def create_bwrap_argv(config):
                 mount_tasks += [MountTask(MountMode.BIND_RO, wine_opt_prefix.rstrip("/"))]
                 break
 
+    # More Wine: Mount the place where ubuntu >=26.04 has wineserver located
+    if config.with_wine and os.path.exists(_WINESERVER_BIN_PATH_UBUNTU_26_04):
+        mount_tasks += [MountTask(MountMode.BIND_RO, _WINESERVER_BIN_PATH_UBUNTU_26_04)]
+
     # Extra binds
     for bind in config.extra_binds:
         mount_target_orig, mount_access = parse_path_colon_access(bind)
@@ -551,6 +557,7 @@ def create_bwrap_argv(config):
     # Filter ${PATH}
     candidate_paths = os.environ["PATH"].split(os.pathsep)
     candidate_paths.append("/usr/lib/wine")  # for wineserver on e.g. Debian
+    candidate_paths.append(_WINESERVER_BIN_PATH_UBUNTU_26_04)
     available_paths = []
     for candidate_path in candidate_paths:
         candidate_path = os.path.realpath(candidate_path)
