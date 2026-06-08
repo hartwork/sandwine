@@ -23,6 +23,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import sysconfig
 from argparse import ArgumentParser, RawTextHelpFormatter
 from contextlib import nullcontext
 from dataclasses import dataclass
@@ -299,6 +300,46 @@ def single_trailing_sep(path):
     return path.rstrip(os.sep) + os.sep
 
 
+def find_wineserver() -> str | None:
+    # Locate the wineserver binary the way Wine's own loader does
+    # (dlls/ntdll/unix/loader.c:exec_wineserver), so that distribution-specific
+    # install locations -- in particular Debian/Ubuntu multiarch directories
+    # like /usr/lib/x86_64-linux-gnu/wine/ -- are found without hardcoding.
+    #
+    # 1. ${WINESERVER} -- Wine honors it as a literal path.
+    env_wineserver = os.environ.get("WINESERVER")
+    if env_wineserver and os.access(env_wineserver, os.X_OK) and os.path.isfile(env_wineserver):
+        return os.path.realpath(env_wineserver)
+
+    # 2. ${PATH} -- covers a plain "wineserver" on ${PATH}.
+    if (path_wineserver := shutil.which("wineserver")) is not None:
+        return os.path.realpath(path_wineserver)
+
+    # 3. The library directory next to the "wine" loader, like Wine's bin_dir.
+    #    This is the case that covers Debian/Ubuntu (multiarch) and others.
+    prefixes = []
+    if (wine_bin_abs_path := shutil.which("wine")) is not None:
+        # e.g. /usr/bin/wine -> /usr
+        prefixes.append(os.path.dirname(os.path.dirname(os.path.realpath(wine_bin_abs_path))))
+    prefixes += ["/usr", "/usr/local"]
+
+    multiarch = sysconfig.get_config_var("MULTIARCH")  # e.g. "x86_64-linux-gnu" on Debian/Ubuntu
+    subdirs = [f"lib/{multiarch}/wine"] if multiarch else []
+    subdirs += ["lib/wine", "lib64/wine", "bin"]  # plus BINDIR-style fallback
+
+    seen = set()
+    for prefix in prefixes:
+        for subdir in subdirs:
+            candidate = os.path.join(prefix, subdir, "wineserver")
+            if candidate in seen:
+                continue
+            seen.add(candidate)
+            if os.access(candidate, os.X_OK) and os.path.isfile(candidate):
+                return os.path.realpath(candidate)
+
+    return None
+
+
 def parse_path_colon_access(candidate):
     error_message = f'Value {candidate!r} does not match pattern "PATH:{{ro,rw}}".'
     if ":" not in candidate:
@@ -550,7 +591,11 @@ def create_bwrap_argv(config):
 
     # Filter ${PATH}
     candidate_paths = os.environ["PATH"].split(os.pathsep)
-    candidate_paths.append("/usr/lib/wine")  # for wineserver on e.g. Debian
+    if (wineserver_abs_path := find_wineserver()) is not None:
+        # Make wineserver reachable by bare name on ${PATH} inside the sandbox,
+        # regardless of the distribution's install location (e.g. Debian/Ubuntu
+        # multiarch /usr/lib/x86_64-linux-gnu/wine/).
+        candidate_paths.append(os.path.dirname(wineserver_abs_path))
     available_paths = []
     for candidate_path in candidate_paths:
         candidate_path = os.path.realpath(candidate_path)
