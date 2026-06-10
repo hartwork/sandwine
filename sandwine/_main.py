@@ -622,8 +622,35 @@ def require_recent_bubblewrap():
         sys.exit(1)
 
 
+def which_wine() -> str | None:
+    extra = [
+        "/usr/lib/wine",  # Debian trixie (and earlier), Ubuntu questing (and earlier)
+    ]
+
+    dollar_path: list[str] = os.pathsep.join(os.environ["PATH"].split(os.pathsep) + extra)
+
+    return shutil.which("wine", path=dollar_path)
+
+
+def which_wineserver() -> str | None:
+    extra = [
+        os.path.dirname(which_wine()),
+    ]
+
+    dollar_path: list[str] = os.pathsep.join(os.environ["PATH"].split(os.pathsep) + extra)
+
+    return shutil.which("wineserver", path=dollar_path)
+
+
 def require_command_available(command: str):
-    if shutil.which(command) is None:
+    if command == "wine":
+        resolved = which_wine()
+    elif command == "wineserver":
+        resolved = which_wineserver()
+    else:
+        resolved = shutil.which(command)
+
+    if resolved is None:
         raise CommandNotFound(command)
 
 
@@ -643,6 +670,10 @@ def _inner_main(with_wine: bool):
             require_command_available("script")
 
         require_recent_bubblewrap()
+
+        if with_wine:
+            require_command_available("wine")
+            require_command_available("wineserver")
 
         if X11Mode(config.x11) != X11Mode.NONE:
             if X11Mode(config.x11) == X11Mode.AUTO:
