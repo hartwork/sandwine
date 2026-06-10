@@ -23,6 +23,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import sysconfig
 from argparse import ArgumentParser, RawTextHelpFormatter
 from contextlib import nullcontext
 from dataclasses import dataclass
@@ -299,6 +300,96 @@ def single_trailing_sep(path):
     return path.rstrip(os.sep) + os.sep
 
 
+def _resolve_executable_file(path: str) -> str | None:
+    resolved = os.path.realpath(path)
+    if os.access(resolved, os.X_OK) and os.path.isfile(resolved):
+        return resolved
+    return None
+
+
+def find_wineserver() -> str | None:
+    # Mirror the resolution *order* of Wine's own loader,
+    # dlls/ntdll/unix/loader.c:exec_wineserver() on wine master
+    # (https://gitlab.winehq.org/wine/wine/-/blob/master/dlls/ntdll/unix/loader.c
+    # #L505), which for an installed Wine is:
+    #
+    #   1. bin_dir   -- the directory next to the "wine" loader
+    #   2. ${WINESERVER}
+    #   3. ${PATH}
+    #   4. BINDIR    -- the compile-time fallback
+    #
+    # The two build-tree branches Wine checks before these only apply when
+    # running from a Wine build directory, not an installed Wine, so they are
+    # intentionally omitted. NOTE: this order has changed across Wine releases;
+    # it is pinned to master here and may differ on older Wine.
+    #
+    # For bin_dir we do not reverse-engineer Wine's layout by guessing lib vs
+    # lib64: instead we anchor on the "wine" loader itself. os.path.realpath()
+    # follows symlinks -- including /etc/alternatives/wine and winehq's
+    # /opt/wine-*/bin/wine -- to the real loader, next to which wineserver is
+    # installed in essentially every packaging. Only the architecture-exact
+    # multiarch directory and a word-size-ordered lib/lib64 fallback remain as
+    # backups for layouts where the two are split (e.g. Debian's wrapper script,
+    # which is covered by ${MULTIARCH}).
+
+    seen = set()
+
+    def search(directory):
+        candidate = os.path.join(directory, "wineserver")
+        if candidate in seen:
+            return None
+        seen.add(candidate)
+        return _resolve_executable_file(candidate)
+
+    wine_loader = shutil.which("wine")
+    if wine_loader is None:
+        return None
+
+    wine_loader = os.path.realpath(wine_loader)
+
+    prefixes = []
+    if wine_loader is not None:
+        # e.g. /usr/bin/wine -> /usr
+        prefixes.append(os.path.dirname(os.path.dirname(wine_loader)))
+
+    multiarch = sysconfig.get_config_var("MULTIARCH")  # e.g. "x86_64-linux-gnu" on Debian/Ubuntu
+    # Generic, non-architecture-specific fallback: try the host's native word
+    # size first, so a 64-bit multilib box (where /usr/lib is 32-bit and
+    # /usr/lib64 is 64-bit) does not pick up a 32-bit wineserver.
+    generic_lib_subdirs = (
+        ["lib64/wine", "lib/wine"] if sys.maxsize > 2**32 else ["lib/wine", "lib64/wine"]
+    )
+
+    # 1. bin_dir, like Wine -- but anchored on where "wine" actually resolves.
+    bin_dirs = []
+    if wine_loader is not None:
+        bin_dirs.append(os.path.dirname(wine_loader))
+    if multiarch:
+        bin_dirs += [os.path.join(prefix, "lib", multiarch, "wine") for prefix in prefixes]
+    bin_dirs += [
+        os.path.join(prefix, subdir) for prefix in prefixes for subdir in generic_lib_subdirs
+    ]
+    for directory in bin_dirs:
+        if (resolved := search(directory)) is not None:
+            return resolved
+
+    # 2. ${WINESERVER} -- Wine honors it as a literal path.
+    env_wineserver = os.environ.get("WINESERVER")
+    if env_wineserver and (resolved := _resolve_executable_file(env_wineserver)) is not None:
+        return resolved
+
+    # 3. ${PATH} -- covers a plain "wineserver" on ${PATH}.
+    if (path_wineserver := shutil.which("wineserver")) is not None:
+        return os.path.realpath(path_wineserver)
+
+    # 4. BINDIR -- Wine's compile-time fallback, conventionally <prefix>/bin.
+    for prefix in prefixes:
+        if (resolved := search(os.path.join(prefix, "bin"))) is not None:
+            return resolved
+
+    return None
+
+
 def parse_path_colon_access(candidate):
     error_message = f'Value {candidate!r} does not match pattern "PATH:{{ro,rw}}".'
     if ":" not in candidate:
@@ -466,6 +557,21 @@ def create_bwrap_argv(config):
                 mount_tasks += [MountTask(MountMode.BIND_RO, wine_opt_prefix.rstrip("/"))]
                 break
 
+    # Even More Wine: Point Wine and the clean-shutdown wrapper at the wineserver
+    #                 binary by absolute path. Wine itself honors ${WINESERVER},
+    #                 so this removes any reliance on ${PATH} and works regardless
+    #                 of the distribution's install location (e.g. Debian/Ubuntu
+    #                 multiarch /usr/lib/x86_64-linux-gnu/wine/). The binary may
+    #                 live outside the default mount stack (e.g. via a custom
+    #                 ${WINESERVER}), so bind-mount it explicitly to guarantee it
+    #                 exists inside the sandbox.
+    if config.with_wine:
+        wineserver_abs_path = find_wineserver()
+        if wineserver_abs_path is None:
+            raise CommandNotFound("wineserver")
+        env_tasks["WINESERVER"] = wineserver_abs_path
+        mount_tasks += [MountTask(MountMode.BIND_RO, wineserver_abs_path)]
+
     # Extra binds
     for bind in config.extra_binds:
         mount_target_orig, mount_access = parse_path_colon_access(bind)
@@ -550,7 +656,14 @@ def create_bwrap_argv(config):
 
     # Filter ${PATH}
     candidate_paths = os.environ["PATH"].split(os.pathsep)
-    candidate_paths.append("/usr/lib/wine")  # for wineserver on e.g. Debian
+    if config.with_wine:
+        # The "wine" loader is launched by bare name and lives next to
+        # wineserver (e.g. /usr/lib/wine/ on Ubuntu's wine32:i386, which ships
+        # no /usr/bin/wine). Make that directory reachable on the sandbox
+        # ${PATH} so `wine` resolves; the filter below keeps it only if it
+        # exists in the mount stack. (wineserver itself is invoked by its
+        # absolute ${WINESERVER} path, not via ${PATH}.)
+        candidate_paths.append(os.path.dirname(wineserver_abs_path))
     available_paths = []
     for candidate_path in candidate_paths:
         candidate_path = os.path.realpath(candidate_path)
@@ -581,7 +694,11 @@ def create_bwrap_argv(config):
 
     # Wrap with wineserver (for clean shutdown, it defaults to 3 seconds timeout)
     if config.with_wine:
-        argv.add("sh", "-c", 'wineserver -p0 && "$0" "$@" ; ret=$? ; wineserver -k ; exit ${ret}')
+        argv.add(
+            "sh",
+            "-c",
+            '"${WINESERVER}" -p0 && "$0" "$@" ; ret=$? ; "${WINESERVER}" -k ; exit ${ret}',
+        )
 
     # Add winecfg
     if run_winecfg and config.with_wine:
