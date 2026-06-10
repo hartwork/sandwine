@@ -639,7 +639,7 @@ def create_bwrap_argv(config):
         argv.add(
             "sh",
             "-c",
-            '"$WINESERVER" -p0 && "$0" "$@" ; ret=$? ; "$WINESERVER" -k ; exit ${ret}',
+            '"${WINESERVER}" -p0 && "$0" "$@" ; ret=$? ; "${WINESERVER}" -k ; exit ${ret}',
         )
 
     # Add winecfg
