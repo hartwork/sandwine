@@ -351,7 +351,6 @@ def find_wineserver() -> str | None:
     if wine_loader is not None:
         # e.g. /usr/bin/wine -> /usr
         prefixes.append(os.path.dirname(os.path.dirname(wine_loader)))
-    prefixes += ["/usr", "/usr/local"]
 
     multiarch = sysconfig.get_config_var("MULTIARCH")  # e.g. "x86_64-linux-gnu" on Debian/Ubuntu
     # Generic, non-architecture-specific fallback: try the host's native word
