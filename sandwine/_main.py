@@ -551,7 +551,6 @@ def create_bwrap_argv(config):
 
     # Filter ${PATH}
     candidate_paths = os.environ["PATH"].split(os.pathsep)
-    candidate_paths.append("/usr/lib/wine")  # for wineserver on e.g. Debian
     available_paths = []
     for candidate_path in candidate_paths:
         candidate_path = os.path.realpath(candidate_path)
@@ -568,6 +567,7 @@ def create_bwrap_argv(config):
                 ", dropped from ${PATH}."
             )
     env_tasks["PATH"] = os.pathsep.join(available_paths)
+    env_tasks["wineserver"] = which_wineserver()
 
     # Create environment (meaning environment variables)
     argv.add("--clearenv")
@@ -582,7 +582,11 @@ def create_bwrap_argv(config):
 
     # Wrap with wineserver (for clean shutdown, it defaults to 3 seconds timeout)
     if config.with_wine:
-        argv.add("sh", "-c", 'wineserver -p0 && "$0" "$@" ; ret=$? ; wineserver -k ; exit ${ret}')
+        argv.add(
+            "sh",
+            "-c",
+            '"${wineserver}" -p0 && "$0" "$@" ; ret=$? ; "${wineserver}" -k ; exit ${ret}',
+        )
 
     # Add winecfg
     if run_winecfg and config.with_wine:
@@ -597,7 +601,7 @@ def create_bwrap_argv(config):
         # Add Wine
         inner_argv = []
         if config.with_wine:
-            inner_argv.append("wine")
+            inner_argv.append(which_wine())
         inner_argv.append(config.argv_0)
         inner_argv.extend(config.argv_1_plus)
 
@@ -641,7 +645,7 @@ def which_wineserver() -> str | None:
     if (multiarch := sysconfig.get_config_var("MULTIARCH")) is not None:
         extra.append(f"/usr/lib/{multiarch}/wine/wineserver")  # e.g. Debian sid and Ubuntu resolute
 
-    dollar_path: list[str] = os.pathsep.join(os.environ["PATH"].split(os.pathsep) + extra)
+    dollar_path: list[str] = os.pathsep.join(extra)
 
     return shutil.which("wineserver", path=dollar_path)
 

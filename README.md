@@ -151,6 +151,7 @@ So what is shared with the application by default then?
 - `${PATH}` (with known-unavailable entries removed)
 - `${TERM}`
 - `${USER}`
+- `${wineserver}` (lowercase, with the path to command `wineserver`)
 
 
 **sandwine** features include:
