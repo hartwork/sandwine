@@ -23,6 +23,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import sysconfig
 from argparse import ArgumentParser, RawTextHelpFormatter
 from contextlib import nullcontext
 from dataclasses import dataclass
@@ -636,6 +637,9 @@ def which_wineserver() -> str | None:
     extra = [
         os.path.dirname(which_wine()),
     ]
+
+    if (multiarch := sysconfig.get_config_var("MULTIARCH")) is not None:
+        extra.append(f"/usr/lib/{multiarch}/wine/wineserver")  # e.g. Debian sid and Ubuntu resolute
 
     dollar_path: list[str] = os.pathsep.join(os.environ["PATH"].split(os.pathsep) + extra)
 
