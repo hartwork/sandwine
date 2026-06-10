@@ -153,6 +153,7 @@ So what is shared with the application by default then?
 - `${USER}`
 - `${WINEDEBUG}`
 - `${WINEDLLOVERRIDES}`
+- `${wineserver}` (lowercase, with the path to command `wineserver`)
 
 
 **sandwine** features include:
