@@ -300,6 +300,13 @@ def single_trailing_sep(path):
     return path.rstrip(os.sep) + os.sep
 
 
+def _resolve_executable_file(path: str) -> str | None:
+    resolved = os.path.realpath(path)
+    if os.access(resolved, os.X_OK) and os.path.isfile(resolved):
+        return resolved
+    return None
+
+
 def find_wineserver() -> str | None:
     # Locate the wineserver binary the way Wine's own loader does
     # (dlls/ntdll/unix/loader.c:exec_wineserver), so that distribution-specific
@@ -308,8 +315,8 @@ def find_wineserver() -> str | None:
     #
     # 1. ${WINESERVER} -- Wine honors it as a literal path.
     env_wineserver = os.environ.get("WINESERVER")
-    if env_wineserver and os.access(env_wineserver, os.X_OK) and os.path.isfile(env_wineserver):
-        return os.path.realpath(env_wineserver)
+    if env_wineserver and (resolved := _resolve_executable_file(env_wineserver)) is not None:
+        return resolved
 
     # 2. ${PATH} -- covers a plain "wineserver" on ${PATH}.
     if (path_wineserver := shutil.which("wineserver")) is not None:
@@ -334,8 +341,8 @@ def find_wineserver() -> str | None:
             if candidate in seen:
                 continue
             seen.add(candidate)
-            if os.access(candidate, os.X_OK) and os.path.isfile(candidate):
-                return os.path.realpath(candidate)
+            if (resolved := _resolve_executable_file(candidate)) is not None:
+                return resolved
 
     return None
 
