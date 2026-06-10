@@ -342,8 +342,10 @@ def find_wineserver() -> str | None:
         return _resolve_executable_file(candidate)
 
     wine_loader = shutil.which("wine")
-    if wine_loader is not None:
-        wine_loader = os.path.realpath(wine_loader)
+    if wine_loader is None:
+        return None
+
+    wine_loader = os.path.realpath(wine_loader)
 
     prefixes = []
     if wine_loader is not None:
