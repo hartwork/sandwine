@@ -23,6 +23,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import sysconfig
 from argparse import ArgumentParser, RawTextHelpFormatter
 from contextlib import nullcontext
 from dataclasses import dataclass
@@ -571,7 +572,6 @@ def create_bwrap_argv(config):
 
     # Filter ${PATH}
     candidate_paths = os.environ["PATH"].split(os.pathsep)
-    candidate_paths.append("/usr/lib/wine")  # for wineserver on e.g. Debian
     available_paths = []
     for candidate_path in candidate_paths:
         candidate_path = os.path.realpath(candidate_path)
@@ -588,6 +588,7 @@ def create_bwrap_argv(config):
                 ", dropped from ${PATH}."
             )
     env_tasks["PATH"] = os.pathsep.join(available_paths)
+    env_tasks["wineserver"] = which_wineserver()
 
     # Additional environment variables and values to set
     env_tasks.update(config.env_pairs)
@@ -605,7 +606,11 @@ def create_bwrap_argv(config):
 
     # Wrap with wineserver (for clean shutdown, it defaults to 3 seconds timeout)
     if config.with_wine:
-        argv.add("sh", "-c", 'wineserver -p0 && "$0" "$@" ; ret=$? ; wineserver -k ; exit ${ret}')
+        argv.add(
+            "sh",
+            "-c",
+            '"${wineserver}" -p0 && "$0" "$@" ; ret=$? ; "${wineserver}" -k ; exit ${ret}',
+        )
 
     # Add winecfg
     if run_winecfg and config.with_wine:
@@ -620,7 +625,7 @@ def create_bwrap_argv(config):
         # Add Wine
         inner_argv = []
         if config.with_wine:
-            inner_argv.append("wine")
+            inner_argv.append(which_wine())
         inner_argv.append(config.argv_0)
         inner_argv.extend(config.argv_1_plus)
 
@@ -646,8 +651,38 @@ def require_recent_bubblewrap():
         sys.exit(1)
 
 
+def which_wine() -> str | None:
+    extra = [
+        "/usr/lib/wine",  # Debian trixie (and earlier), Ubuntu questing (and earlier)
+    ]
+
+    dollar_path: list[str] = os.pathsep.join(os.environ["PATH"].split(os.pathsep) + extra)
+
+    return shutil.which("wine", path=dollar_path)
+
+
+def which_wineserver() -> str | None:
+    extra = [
+        os.path.dirname(which_wine()),
+    ]
+
+    if (multiarch := sysconfig.get_config_var("MULTIARCH")) is not None:
+        extra.append(f"/usr/lib/{multiarch}/wine")  # e.g. Debian sid and Ubuntu resolute
+
+    dollar_path: list[str] = os.pathsep.join(extra)
+
+    return shutil.which("wineserver", path=dollar_path)
+
+
 def require_command_available(command: str):
-    if shutil.which(command) is None:
+    if command == "wine":
+        resolved = which_wine()
+    elif command == "wineserver":
+        resolved = which_wineserver()
+    else:
+        resolved = shutil.which(command)
+
+    if resolved is None:
         raise CommandNotFound(command)
 
 
@@ -667,6 +702,10 @@ def _inner_main(with_wine: bool):
             require_command_available("script")
 
         require_recent_bubblewrap()
+
+        if with_wine:
+            require_command_available("wine")
+            require_command_available("wineserver")
 
         if X11Mode(config.x11) != X11Mode.NONE:
             if X11Mode(config.x11) == X11Mode.AUTO:
