@@ -152,6 +152,7 @@ So what is shared with the application by default then?
 - `${TERM}`
 - `${USER}`
 - `${WINEDEBUG}`
+- `${WINEDLLOVERRIDES}`
 
 
 **sandwine** features include:
