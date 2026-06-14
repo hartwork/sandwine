@@ -229,6 +229,7 @@ def parse_command_line(args: list[str], with_wine: bool):
         action="append",
         metavar="PATH:{ro,rw}",
         help="Bind mount host PATH on PATH (CAREFUL!)",
+        type=parse_path_colon_access,
     )
 
     general = parser.add_argument_group("General operation arguments")
@@ -467,8 +468,7 @@ def create_bwrap_argv(config):
                 break
 
     # Extra binds
-    for bind in config.extra_binds:
-        mount_target_orig, mount_access = parse_path_colon_access(bind)
+    for mount_target_orig, mount_access in config.extra_binds:
         mount_target = os.path.abspath(mount_target_orig)
         del mount_target_orig
         if mount_access == AccessMode.READ_WRITE:
