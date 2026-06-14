@@ -267,6 +267,15 @@ def parse_command_line(args: list[str], with_wine: bool):
         "; helps to workaround weird graphics-related crashes"
         " (default: run command once)",
     )
+    general.add_argument(
+        "--env",
+        dest="env_pairs",
+        default=[],
+        action="append",
+        metavar="VAR=VALUE",
+        help="Set the specified environment variable VAR to the specified VALUE.",
+        type=parse_var_value,
+    )
 
     return parser.parse_args(args)
 
@@ -314,6 +323,17 @@ def parse_path_colon_access(candidate):
 
 
 parse_path_colon_access.__name__ = "PATH:{ro,rw}"  # for argparse
+
+
+def parse_var_value(candidate):
+    error_message = f'Value {candidate!r} does not match pattern "VAR=VALUE".'
+    if "=" not in candidate:
+        raise ValueError(error_message)
+
+    return candidate.split("=", 1)
+
+
+parse_var_value.__name__ = "VAR=VALUE"  # for argparse
 
 
 @dataclass
@@ -567,6 +587,9 @@ def create_bwrap_argv(config):
                 ", dropped from ${PATH}."
             )
     env_tasks["PATH"] = os.pathsep.join(available_paths)
+
+    # Additional environment variables and values to set
+    env_tasks.update(config.env_pairs)
 
     # Create environment (meaning environment variables)
     argv.add("--clearenv")
