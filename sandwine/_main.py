@@ -357,7 +357,7 @@ def create_bwrap_argv(config):
         MountTask(MountMode.BIND_RO, "/usr"),
         MountTask(MountMode.TMPFS, my_home),
     ]
-    env_tasks = {var: None for var in ["HOME", "TERM", "USER", "WINEDEBUG"]}
+    env_tasks = {var: None for var in ["HOME", "TERM", "USER", "WINEDEBUG", "WINEDLLOVERRIDES"]}
     env_tasks["container"] = "sandwine"
     unshare_args = ["--unshare-user", "--unshare-all"]
 

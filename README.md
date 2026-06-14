@@ -151,6 +151,8 @@ So what is shared with the application by default then?
 - `${PATH}` (with known-unavailable entries removed)
 - `${TERM}`
 - `${USER}`
+- `${WINEDEBUG}`
+- `${WINEDLLOVERRIDES}`
 
 
 **sandwine** features include:
