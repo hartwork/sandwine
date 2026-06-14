@@ -431,6 +431,7 @@ def create_bwrap_argv(config):
             MountTask(MountMode.BIND_DEV, "/dev/nvidia0"),
             MountTask(MountMode.BIND_DEV, "/dev/nvidiactl"),
             MountTask(MountMode.BIND_DEV, "/dev/nvidia-modeset"),
+            MountTask(MountMode.BIND_DEV, "/dev/nvidia-uvm"),
         ]
 
     # Input
