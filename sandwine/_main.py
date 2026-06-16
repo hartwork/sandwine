@@ -442,6 +442,7 @@ def create_bwrap_argv(config):
         mount_tasks += [MountTask(MountMode.BIND_DEV, "/dev/input")]
 
     # Wine
+    run_wineboot = config.dotwine is None or not os.path.exists(config.dotwine[0])
     run_winecfg = X11Mode(config.x11) != X11Mode.NONE and (
         config.configure or config.dotwine is None or not os.path.exists(config.dotwine[0])
     )
@@ -590,6 +591,9 @@ def create_bwrap_argv(config):
     env_tasks["PATH"] = os.pathsep.join(available_paths)
 
     if config.with_wine:
+        if run_wineboot:
+            env_tasks["wineboot"] = which_winehelper("wineboot")
+
         env_tasks["wineserver"] = which_winehelper("wineserver")
 
     # Additional environment variables and values to set
@@ -610,10 +614,16 @@ def create_bwrap_argv(config):
 
     # Wrap with wineserver (for clean shutdown, it defaults to 3 seconds timeout)
     if config.with_wine:
+        if run_wineboot:
+            wineboot_init = '"${wineboot}" -i && "${wineserver}" -k -w && '
+        else:
+            wineboot_init = ""
+
         argv.add(
             "sh",
             "-c",
-            '"${wineserver}" -p0 && "$0" "$@" ; ret=$? ; "${wineserver}" -k ; exit ${ret}',
+            wineboot_init
+            + '"${wineserver}" -p0 && "$0" "$@" ; ret=$? ; "${wineserver}" -k ; exit ${ret}',
         )
 
     # Add winecfg
