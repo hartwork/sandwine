@@ -602,6 +602,8 @@ def create_bwrap_argv(config):
                 continue
         argv.add("--setenv", env_var, env_value)
 
+    del env_tasks  # to avoid additions to it further down that would have no effect
+
     argv.add("--")
 
     # Wrap with wineserver (for clean shutdown, it defaults to 3 seconds timeout)
