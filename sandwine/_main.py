@@ -613,7 +613,8 @@ def create_bwrap_argv(config):
         parts = [
             '"${wineserver}" -p0 && "$0" "$@"',
             "ret=$?",
-            '"${wineserver}" -k',
+            '"${wineserver}" -k ' + str(signal.SIGTERM),
+            '"${wineserver}" -w',
             "exit ${ret}",
         ]
         argv.add("sh", "-c", " ; ".join(parts))
