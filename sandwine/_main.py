@@ -626,7 +626,7 @@ def create_bwrap_argv(config):
             "sh",
             "-c",
             wineboot_init
-            + '"${wineserver}" -p0 && "$0" "$@" ; ret=$? ; "${wineserver}" -k ; exit ${ret}',
+            + '"${wineserver}" -p0 && "$0" "$@" ; ret=$? ; "${wineserver}" -k -w ; exit ${ret}',
         )
 
     # Add winecfg
