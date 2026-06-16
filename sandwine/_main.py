@@ -722,6 +722,8 @@ def _inner_main(with_wine: bool):
 
         if with_wine:
             require_command_available("wine")
+            if config.configure:
+                require_command_available("winecfg")
             require_command_available("wineserver")
 
         if X11Mode(config.x11) != X11Mode.NONE:
