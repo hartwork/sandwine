@@ -590,7 +590,7 @@ def create_bwrap_argv(config):
     env_tasks["PATH"] = os.pathsep.join(available_paths)
 
     if config.with_wine:
-        env_tasks["wineserver"] = which_wineserver()
+        env_tasks["wineserver"] = which_winehelper("wineserver")
 
     # Additional environment variables and values to set
     env_tasks.update(config.env_pairs)
@@ -665,7 +665,7 @@ def which_wine() -> str | None:
     return shutil.which("wine", path=dollar_path)
 
 
-def which_wineserver() -> str | None:
+def which_winehelper(command: str) -> str | None:
     extra = [
         os.path.dirname(which_wine()),
     ]
@@ -675,14 +675,14 @@ def which_wineserver() -> str | None:
 
     dollar_path: list[str] = os.pathsep.join(extra)
 
-    return shutil.which("wineserver", path=dollar_path)
+    return shutil.which(command, path=dollar_path)
 
 
 def require_command_available(command: str):
     if command == "wine":
         resolved = which_wine()
     elif command == "wineserver":
-        resolved = which_wineserver()
+        resolved = which_winehelper(command)
     else:
         resolved = shutil.which(command)
 
