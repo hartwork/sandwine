@@ -588,7 +588,9 @@ def create_bwrap_argv(config):
                 ", dropped from ${PATH}."
             )
     env_tasks["PATH"] = os.pathsep.join(available_paths)
-    env_tasks["wineserver"] = which_wineserver()
+
+    if config.with_wine:
+        env_tasks["wineserver"] = which_wineserver()
 
     # Additional environment variables and values to set
     env_tasks.update(config.env_pairs)
