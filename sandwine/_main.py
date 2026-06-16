@@ -443,7 +443,7 @@ def create_bwrap_argv(config):
 
     # Wine
     run_winecfg = X11Mode(config.x11) != X11Mode.NONE and (
-        config.configure or config.dotwine is None
+        config.configure or config.dotwine is None or not os.path.exists(config.dotwine[0])
     )
     dotwine_target_path = os.path.expanduser("~/.wine")
     if config.dotwine is not None:
