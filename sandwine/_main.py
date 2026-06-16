@@ -594,6 +594,9 @@ def create_bwrap_argv(config):
         if run_wineboot:
             env_tasks["wineboot"] = which_winehelper("wineboot")
 
+        if run_winecfg:
+            env_tasks["winecfg"] = which_winehelper("winecfg")
+
         env_tasks["wineserver"] = which_winehelper("wineserver")
 
     # Additional environment variables and values to set
@@ -628,7 +631,7 @@ def create_bwrap_argv(config):
 
     # Add winecfg
     if run_winecfg and config.with_wine:
-        argv.add("sh", "-c", 'winecfg && exec "$0" "$@"')
+        argv.add("sh", "-c", '"${winecfg}" && exec "$0" "$@"')
 
     # Add second try
     if config.second_try:
