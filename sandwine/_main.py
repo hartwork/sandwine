@@ -611,7 +611,7 @@ def create_bwrap_argv(config):
     # Wrap with wineserver (for clean shutdown, it defaults to 3 seconds timeout)
     if config.with_wine:
         parts = [
-            '"${wineserver}" -p0 && "$0" "$@"',
+            '"$0" "$@"',
             "ret=$?",
             '"${wineserver}" -k ' + str(signal.SIGTERM),
             '"${wineserver}" -w',
