@@ -610,11 +610,14 @@ def create_bwrap_argv(config):
 
     # Wrap with wineserver (for clean shutdown, it defaults to 3 seconds timeout)
     if config.with_wine:
-        argv.add(
-            "sh",
-            "-c",
-            '"${wineserver}" -p0 && "$0" "$@" ; ret=$? ; "${wineserver}" -k ; exit ${ret}',
-        )
+        parts = [
+            '"$0" "$@"',
+            "ret=$?",
+            '"${wineserver}" -k ' + str(signal.SIGTERM),
+            '"${wineserver}" -w',
+            "exit ${ret}",
+        ]
+        argv.add("sh", "-c", " ; ".join(parts))
 
     # Add winecfg
     if run_winecfg and config.with_wine:
