@@ -613,10 +613,16 @@ def create_bwrap_argv(config):
         parts = [
             '"$0" "$@"',
             "ret=$?",
-            '"${wineserver}" -k ' + str(signal.SIGTERM),
-            '"${wineserver}" -w',
-            "exit ${ret}",
         ]
+        if (config.argv_0.casefold() != "start") and not config.argv_0.casefold().endswith(".lnk"):
+            # make the wineserver exit faster.
+            parts.append('"${wineserver}" -k ' + str(signal.SIGTERM))
+        parts.extend(
+            [
+                '"${wineserver}" -w',
+                "exit ${ret}",
+            ]
+        )
         argv.add("sh", "-c", " ; ".join(parts))
 
     # Add winecfg
