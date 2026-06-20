@@ -368,7 +368,6 @@ def create_bwrap_argv(config):
         MountTask(MountMode.BIND_RO, "/bin"),
         MountTask(MountMode.DEVTMPFS, "/dev"),
         MountTask(MountMode.BIND_DEV, "/dev/ntsync", required=False),
-        MountTask(MountMode.BIND_DEV, "/dev/dri"),
         MountTask(MountMode.BIND_RO, "/etc"),
         infer_mount_task(MountMode.BIND_RO, "/lib"),
         infer_mount_task(MountMode.BIND_RO, "/lib32", required=False),
@@ -415,6 +414,7 @@ def create_bwrap_argv(config):
     # X11
     if X11Mode(config.x11) != X11Mode.NONE:
         x11_unix_socket = X11Display(config.x11_display_number).get_unix_socket()
+        # NOTE: The /dev/dri mount task is handled further down
         mount_tasks += [MountTask(MountMode.BIND_RO, x11_unix_socket)]
         env_tasks["DISPLAY"] = f":{config.x11_display_number}"
 
@@ -424,11 +424,13 @@ def create_bwrap_argv(config):
         wayland_socket = os.path.join(xdg_runtime_dir, wayland_display)
         env_tasks["WAYLAND_DISPLAY"] = wayland_display
         env_tasks["XDG_RUNTIME_DIR"] = xdg_runtime_dir
+        # NOTE: The /dev/dri mount task is handled further down
         mount_tasks += [MountTask(MountMode.BIND_RO, wayland_socket)]
 
     # GPU
     if config.nvidia_gpu:
         mount_tasks += [
+            # NOTE: The /dev/dri mount task is handled further down
             MountTask(MountMode.BIND_DEV, "/dev/nvidia0"),
             MountTask(MountMode.BIND_DEV, "/dev/nvidiactl"),
             MountTask(MountMode.BIND_DEV, "/dev/nvidia-modeset"),
@@ -440,6 +442,10 @@ def create_bwrap_argv(config):
         # default udev based hotplug not working in container
         env_tasks["SDL_JOYSTICK_DISABLE_UDEV"] = "1"
         mount_tasks += [MountTask(MountMode.BIND_DEV, "/dev/input")]
+
+    # X11, Wayland or GPU
+    if X11Mode(config.x11) != X11Mode.NONE or config.wayland or config.nvidia_gpu:
+        mount_tasks += [MountTask(MountMode.BIND_DEV, "/dev/dri")]
 
     # Wine
     run_winecfg = X11Mode(config.x11) != X11Mode.NONE and (
