@@ -115,6 +115,7 @@ To achieve that, by default the launched application:
 - Does not have access to your sound card (unless you pass `--pulseaudio` and/or `--pipewire`)
 - Does not have access to your GPU card (unless you pass `--nvidia-gpu`)
 - Does not have access to `/dev/input` (unless you pass `--raw-input`).
+- Does not have access to `/dev/dri` (unless you pass `--nvidia-gpu`, `--wayland`, or enable X11 support some way)
 
 So what is shared with the application by default then?
 
@@ -129,7 +130,6 @@ So what is shared with the application by default then?
 | `/` | new tmpfs |
 | `/bin` | read-only bind mount |
 | `/dev` | new devtmpfs |
-| `/dev/dri` | read-write bind mount with device access |
 | `/dev/ntsync` | bind mount with device access |
 | `/etc` | read-only bind mount |
 | `${HOME}` | new tmpfs |
