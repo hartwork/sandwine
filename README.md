@@ -27,6 +27,8 @@ is licensed under the "GPL v3 or later" license.
 ```bash
 git clone https://github.com/hartwork/sandwine
 cd sandwine
+python3 -m venv venv/
+source venv/bin/activate
 pip3 install .
 ```
 
