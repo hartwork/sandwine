@@ -21,6 +21,7 @@ is licensed under the "GPL v3 or later" license.
 # pip3 install sandwine
 ```
 
+
 ### Git development
 
 ```bash
@@ -76,6 +77,7 @@ If your games are located in Wineprefix like "~/.wine/drive_c/Games", you don't 
 Optional: `--nvidia-gpu` to enable access to Nvidia GPU.
 
 Optional: `--raw-input` to enable access to controllers (gamepads).
+
 
 ### Run Geiss Screensaver: with sound, with host X11 (careful!), no networking, no `~/*` file access
 
