@@ -21,6 +21,14 @@ is licensed under the "GPL v3 or later" license.
 # pip3 install sandwine
 ```
 
+### Git development
+
+```bash
+git clone https://github.com/hartwork/sandwine
+cd sandwine
+pip3 install .
+```
+
 
 # Usage Examples
 
@@ -66,6 +74,8 @@ sandwine --dotwine ~/.wine-games:rw --pass /path/to/Games/folder:rw --wayland --
 If your games are located in Wineprefix like "~/.wine/drive_c/Games", you don't need this parameter.
 
 Optional: `--nvidia-gpu` to enable access to Nvidia GPU.
+
+Optional: `--raw-input` to enable access to controllers (gamepads).
 
 ### Run Geiss Screensaver: with sound, with host X11 (careful!), no networking, no `~/*` file access
 
@@ -200,15 +210,6 @@ So what is shared with the application by default then?
   escalation.  Think of a model like the Docker daemon where whoever can talk to the Docker
   daemon can become root. If you use sandwine with something like that, sandwine will have a problem.
 - Start-up time below 200ms is not a goal.
-
-
-# Building from source
-
-```bash
-git clone https://github.com/hartwork/sandwine
-cd sandwine
-pip3 install .
-```
 
 
 # Reporting Vulnerabilities
