@@ -94,7 +94,10 @@ jobs:
         sand --version
 
         # Defaults
+        sandwine
         sandwine -- CMD /C DIR 'Z:\'
+        sand
+        sand -- ls -l /
 
         # File system effect
         sudo touch /mnt/file123

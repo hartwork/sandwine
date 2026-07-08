@@ -620,7 +620,9 @@ def create_bwrap_argv(config):
             '"$0" "$@"',
             "ret=$?",
         ]
-        if (config.argv_0.casefold() != "start") and not config.argv_0.casefold().endswith(".lnk"):
+        if config.argv_0 is None or (
+            config.argv_0.casefold() != "start" and not config.argv_0.casefold().endswith(".lnk")
+        ):
             # make the wineserver exit faster.
             parts.append('"${wineserver}" -k ' + str(signal.SIGTERM))
         parts.extend(
