@@ -35,7 +35,6 @@ dependencies = [
 keywords = ["Wine", "sandbox", "sandboxing", "bubblewrap", "bwrap"]
 classifiers = [
   "Development Status :: 3 - Alpha",
-  "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
   "Intended Audience :: Developers",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
