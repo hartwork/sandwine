@@ -28,23 +28,22 @@ readme = {file = "README.md", content-type = "text/markdown"}
 authors = [
   { name="Sebastian Pipping", email="sebastian@pipping.org" },
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
   "coloredlogs>=15.0.1",
 ]
 keywords = ["Wine", "sandbox", "sandboxing", "bubblewrap", "bwrap"]
 classifiers = [
   "Development Status :: 3 - Alpha",
-  "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
   "Intended Audience :: Developers",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
   "Intended Audience :: Developers",
   "Intended Audience :: End Users/Desktop",
   "Operating System :: Unix",
